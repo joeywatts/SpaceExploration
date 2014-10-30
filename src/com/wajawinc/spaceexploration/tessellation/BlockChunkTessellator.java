@@ -36,7 +36,7 @@ public class BlockChunkTessellator implements ChunkTessellator
     {
     }
 
-    public void tessellateChunk(Chunk c)
+    public void tessellateChunk(Chunk c, int lodLevel)
     {
         int faces = getNumberOfFaces(c);
         /* 3 values per vertex, 4 vertices per face */
@@ -59,7 +59,7 @@ public class BlockChunkTessellator implements ChunkTessellator
             {
                 for (int z = 0; z < Chunk.SIZE; z++)
                 {
-                    float value = c.getValue(x, y, z);
+                    float value = c.getDensity(x, y, z);
                     if (value < 0)
                     {
                         continue;
@@ -245,31 +245,31 @@ public class BlockChunkTessellator implements ChunkTessellator
             {
                 for (int z = 0; z < Chunk.SIZE; z++)
                 {
-                    if (c.getValue(x, y, z) == 0)
+                    if (c.getDensity(x, y, z) == 0)
                     {
                         continue;
                     }
-                    if (x == 0 || c.getValue(x - 1, y, z) == 0)
+                    if (x == 0 || c.getDensity(x - 1, y, z) == 0)
                     {
                         faces++;
                     }
-                    if (x == Chunk.SIZE - 1 || c.getValue(x + 1, y, z) == 0)
+                    if (x == Chunk.SIZE - 1 || c.getDensity(x + 1, y, z) == 0)
                     {
                         faces++;
                     }
-                    if (y == 0 || c.getValue(x, y - 1, z) == 0)
+                    if (y == 0 || c.getDensity(x, y - 1, z) == 0)
                     {
                         faces++;
                     }
-                    if (y == Chunk.SIZE - 1 || c.getValue(x, y + 1, z) == 0)
+                    if (y == Chunk.SIZE - 1 || c.getDensity(x, y + 1, z) == 0)
                     {
                         faces++;
                     }
-                    if (z == 0 || c.getValue(x, y, z - 1) == 0)
+                    if (z == 0 || c.getDensity(x, y, z - 1) == 0)
                     {
                         faces++;
                     }
-                    if (z == Chunk.SIZE - 1 || c.getValue(x, y, z + 1)== 0)
+                    if (z == Chunk.SIZE - 1 || c.getDensity(x, y, z + 1)== 0)
                     {
                         faces++;
                     }
@@ -284,27 +284,27 @@ public class BlockChunkTessellator implements ChunkTessellator
     {
         int face = 0;
         /* Set the bits for each face that should be drawn */
-        if (x == 0 || c.getValue(x - 1, y, z) == 0)
+        if (x == 0 || c.getDensity(x - 1, y, z) == 0)
         {
             face |= LEFT_FACE;
         }
-        if (x == Chunk.SIZE - 1 || c.getValue(x + 1, y, z) == 0)
+        if (x == Chunk.SIZE - 1 || c.getDensity(x + 1, y, z) == 0)
         {
             face |= RIGHT_FACE;
         }
-        if (y == 0 || c.getValue(x, y - 1, z) == 0)
+        if (y == 0 || c.getDensity(x, y - 1, z) == 0)
         {
             face |= BOTTOM_FACE;
         }
-        if (y == Chunk.SIZE - 1 || c.getValue(x, y + 1, z) == 0)
+        if (y == Chunk.SIZE - 1 || c.getDensity(x, y + 1, z) == 0)
         {
             face |= TOP_FACE;
         }
-        if (z == 0 || c.getValue(x, y, z - 1) == 0)
+        if (z == 0 || c.getDensity(x, y, z - 1) == 0)
         {
             face |= FRONT_FACE;
         }
-        if (z == Chunk.SIZE - 1 || c.getValue(x, y, z + 1) == 0)
+        if (z == Chunk.SIZE - 1 || c.getDensity(x, y, z + 1) == 0)
         {
             face |= BACK_FACE;
         }

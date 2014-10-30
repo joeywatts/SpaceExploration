@@ -1,46 +1,15 @@
 package com.wajawinc.spaceexploration.universe.generator;
 
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Random;
 
 public class Noise
 {
-    private static Random rand = new Random();
     private float size;
     private int planetSeed;
-    private float[][][] latticeCache;
-    private boolean cached = false;
-    private int minLatticeCacheX;
-    private int minLatticeCacheY;
-    private int minLatticeCacheZ;
 
     public Noise(int seed, float s)
     {
         size = s;
         planetSeed = seed;
-    }
-
-    public void cacheLatticeValues(int minX, int maxX, int minY, int maxY, int minZ, int maxZ) {
-        cached = false;
-        latticeCache = new float[maxX-minX+1][maxY-minY+1][maxZ-minZ+1];
-        for (int x = 0; x < latticeCache.length; x++) {
-            for (int y =0; y < latticeCache[0].length; y++) {
-                for (int z = 0; z < latticeCache[0][0].length; z++) {
-                    latticeCache[x][y][z]=noise(x+minX,y+minX,z+minZ);
-                }
-            }
-        }
-        minLatticeCacheX = minX;
-        minLatticeCacheY = minY;
-        minLatticeCacheZ = minZ;
-        cached = true;
-    }
-
-    public void clearLatticeCache() {
-        cached = false;
-        latticeCache = null;
     }
 
     public float getNoiseValue (float x, float y, float z)
@@ -49,47 +18,10 @@ public class Noise
     }
 
     private float noise(int x, int y, int z) {
-        if (cached) {
-            if (x >= minLatticeCacheX && x < minLatticeCacheX + latticeCache.length &&
-                y >= minLatticeCacheY && y < minLatticeCacheY + latticeCache[0].length &&
-                z >= minLatticeCacheZ && z < minLatticeCacheZ + latticeCache[0][0].length) {
-                return latticeCache[x-minLatticeCacheX][y-minLatticeCacheY][z-minLatticeCacheZ];
-            }
-        }
-        /*rand.setSeed(getSeed(x, y, z));
-        return rand.nextInt()/(float)Integer.MAX_VALUE;*/
         int n = x*331 + y*337 + z*347 + planetSeed;
         n = (n << 13) ^ n;
         int nn=(n*(n*n*41333 +53307781)+1376312589)&0x7fffffff;
         return ((1.0f-(nn/1073741824.0f))+1)/2.0f;
-    }
-
-    /**
-     * Seed method
-     * @param x
-     * @param y
-     * @param z
-     * @return the seed
-     */
-    private long getSeed(int x, int y, int z)
-    {
-        //long seed = this.planetSeed;
-        //seed = seed * 31 + x;
-        //seed = seed * 31 + y;
-        //seed = seed * 31 + z;
-        return md5(planetSeed + " " + x + " " + y + " " + z).hashCode();
-    }
-
-    private static String md5(String s) {
-        MessageDigest digest;
-        try {
-            digest = MessageDigest.getInstance("MD5");
-            digest.update(s.getBytes(), 0, s.length());
-            String hash = new BigInteger(1, digest.digest()).toString(16);
-            return hash;
-        } catch (NoSuchAlgorithmException e) {
-            return s;
-        }
     }
 
     /**

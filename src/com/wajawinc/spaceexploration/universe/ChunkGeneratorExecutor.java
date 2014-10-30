@@ -1,12 +1,9 @@
 package com.wajawinc.spaceexploration.universe;
 
 import java.util.concurrent.LinkedBlockingQueue;
-import com.wajawinc.spaceexploration.SpaceExplorationRenderer;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.RejectedExecutionHandler;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
 import rajawali.math.Number3D;
 
 public class ChunkGeneratorExecutor
@@ -17,18 +14,30 @@ public class ChunkGeneratorExecutor
     private static final long KEEP_ALIVE_TIME = 1000;
     private static final TimeUnit KEEP_ALIVE_TIME_UNIT = TimeUnit.MILLISECONDS;
 
-    private SpaceExplorationRenderer renderer;
-
-    public ChunkGeneratorExecutor(SpaceExplorationRenderer renderer) {
-        super(CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE_TIME, KEEP_ALIVE_TIME_UNIT, new LinkedBlockingQueue<Runnable>());
-        this.renderer = renderer;
+    private static ChunkGeneratorExecutor instance;
+    
+    public static ChunkGeneratorExecutor getExecutor() {
+    	if (instance == null) {
+    		return new ChunkGeneratorExecutor();
+    	}
+    	return instance;
     }
 
-    public void generateChunk(final Planet planet, final Number3D chunkLocation) {
+    private ChunkGeneratorExecutor() {
+        super(CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE_TIME, KEEP_ALIVE_TIME_UNIT, new LinkedBlockingQueue<Runnable>());
+        instance = this;
+    }
+
+    public void generateChunk(final Planet planet, final Number3D chunkLocation, final int lodLevel) {
         this.execute(new Runnable() {
             public void run()
             {
-                planet.generateChunk(chunkLocation);
+            	if (planet.getChunks().containsKey(chunkLocation)) {
+            		Chunk c = planet.getChunks().get(chunkLocation);
+					c.tessellate(lodLevel);
+            	} else {
+            		planet.generateChunk(chunkLocation, lodLevel);
+            	}
             }
         });
     }

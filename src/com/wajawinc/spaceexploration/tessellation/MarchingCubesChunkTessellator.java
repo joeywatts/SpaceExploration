@@ -225,6 +225,9 @@ public class MarchingCubesChunkTessellator
 
     private int                  numVertices;
     private int                  numIndices;
+    
+    private int lodLevel;
+    private Chunk c;
 
 
     public MarchingCubesChunkTessellator()
@@ -232,9 +235,11 @@ public class MarchingCubesChunkTessellator
     }
 
 
-    public void tessellateChunk(Chunk c)
+    public void tessellateChunk(Chunk c, int lodLevel)
     {
-        calculateNumberOfVerticesAndIndices(c);
+    	this.lodLevel = lodLevel;
+    	this.c = c;
+        calculateNumberOfVerticesAndIndices();
         if (numVertices == 0 || numIndices == 0)
             return;
         Log.d("Tessellator", "Verts: " + numVertices + " Index: " + numIndices);
@@ -249,13 +254,13 @@ public class MarchingCubesChunkTessellator
         float vertexTemp[][] = new float[12][3];
         float normalTemp[][] = new float[12][4];
         float colorTemp[][] = new float[12][4];
-        for (int x = 0; x < Chunk.SIZE; x++)
+        for (int x = 0; x < Chunk.SIZE; x+=lodLevel)
         {
-            for (int y = 0; y < Chunk.SIZE; y++)
+            for (int y = 0; y < Chunk.SIZE; y+=lodLevel)
             {
-                for (int z = 0; z < Chunk.SIZE; z++)
+                for (int z = 0; z < Chunk.SIZE; z+=lodLevel)
                 {
-                    int cubeIndex = getCubeIndex(c, x, y, z);
+                    int cubeIndex = getCubeIndex(x, y, z);
                     int edgeTableValue = EDGE_TABLE[cubeIndex];
                     if ((edgeTableValue & 1) > 0)
                     {
@@ -263,49 +268,49 @@ public class MarchingCubesChunkTessellator
                             x,
                             y,
                             z,
-                            c.getValue(x, y, z),
-                            x + 1,
+                            c.getDensity(x, y, z),
+                            x + lodLevel,
                             y,
                             z,
-                            c.getValue(x + 1, y, z),
+                            c.getDensity(x + lodLevel, y, z),
                             vertexTemp[0]);
                         colorInterpolate(
-                            c.getValue(x, y, z),
-                            c.getValue(x + 1, y, z),
+                            c.getTemperature(x, y, z),
+                            c.getTemperature(x + lodLevel, y, z),
                             colorTemp[0]);
                     }
                     if ((edgeTableValue & (1 << 1)) > 0)
                     {
                         vertexInterpolate(
-                            x + 1,
+                            x + lodLevel,
                             y,
                             z,
-                            c.getValue(x + 1, y, z),
-                            x + 1,
+                            c.getDensity(x + lodLevel, y, z),
+                            x + lodLevel,
                             y,
-                            z + 1,
-                            c.getValue(x + 1, y, z + 1),
+                            z + lodLevel,
+                            c.getDensity(x + lodLevel, y, z + lodLevel),
                             vertexTemp[1]);
                         colorInterpolate(
-                            c.getValue(x + 1, y, z),
-                            c.getValue(x + 1, y, z + 1),
+                            c.getTemperature(x + lodLevel, y, z),
+                            c.getTemperature(x + lodLevel, y, z + lodLevel),
                             colorTemp[1]);
                     }
                     if ((edgeTableValue & (1 << 2)) > 0)
                     {
                         vertexInterpolate(
-                            x + 1,
+                            x + lodLevel,
                             y,
-                            z + 1,
-                            c.getValue(x + 1, y, z + 1),
+                            z + lodLevel,
+                            c.getDensity(x + lodLevel, y, z + lodLevel),
                             x,
                             y,
-                            z + 1,
-                            c.getValue(x, y, z + 1),
+                            z + lodLevel,
+                            c.getDensity(x, y, z + lodLevel),
                             vertexTemp[2]);
                         colorInterpolate(
-                            c.getValue(x + 1, y, z + 1),
-                            c.getValue(x, y, z + 1),
+                            c.getTemperature(x + lodLevel, y, z + lodLevel),
+                            c.getTemperature(x, y, z + lodLevel),
                             colorTemp[2]);
                     }
                     if ((edgeTableValue & (1 << 3)) > 0)
@@ -313,50 +318,50 @@ public class MarchingCubesChunkTessellator
                         vertexInterpolate(
                             x,
                             y,
-                            z + 1,
-                            c.getValue(x, y, z + 1),
+                            z + lodLevel,
+                            c.getDensity(x, y, z + lodLevel),
                             x,
                             y,
                             z,
-                            c.getValue(x, y, z),
+                            c.getDensity(x, y, z),
                             vertexTemp[3]);
                         colorInterpolate(
-                            c.getValue(x, y, z + 1),
-                            c.getValue(x, y, z),
+                            c.getTemperature(x, y, z + lodLevel),
+                            c.getTemperature(x, y, z),
                             colorTemp[3]);
                     }
                     if ((edgeTableValue & (1 << 4)) > 0)
                     {
                         vertexInterpolate(
                             x,
-                            y + 1,
+                            y + lodLevel,
                             z,
-                            c.getValue(x, y + 1, z),
-                            x + 1,
-                            y + 1,
+                            c.getDensity(x, y + lodLevel, z),
+                            x + lodLevel,
+                            y + lodLevel,
                             z,
-                            c.getValue(x + 1, y + 1, z),
+                            c.getDensity(x + lodLevel, y + lodLevel, z),
                             vertexTemp[4]);
                         colorInterpolate(
-                            c.getValue(x, y + 1, z),
-                            c.getValue(x + 1, y + 1, z),
+                            c.getTemperature(x, y + lodLevel, z),
+                            c.getTemperature(x + lodLevel, y + lodLevel, z),
                             colorTemp[4]);
                     }
                     if ((edgeTableValue & (1 << 5)) > 0)
                     {
                         vertexInterpolate(
-                            x + 1,
-                            y + 1,
+                            x + lodLevel,
+                            y + lodLevel,
                             z,
-                            c.getValue(x + 1, y + 1, z),
-                            x + 1,
-                            y + 1,
-                            z + 1,
-                            c.getValue(x + 1, y + 1, z + 1),
+                            c.getDensity(x + lodLevel, y + lodLevel, z),
+                            x + lodLevel,
+                            y + lodLevel,
+                            z + lodLevel,
+                            c.getDensity(x + lodLevel, y + lodLevel, z + lodLevel),
                             vertexTemp[5]);
                         colorInterpolate(
-                            c.getValue(x + 1, y + 1, z),
-                            c.getValue(x + 1, y + 1, z + 1),
+                            c.getTemperature(x + lodLevel, y + lodLevel, z),
+                            c.getTemperature(x + lodLevel, y + lodLevel, z + lodLevel),
                             colorTemp[5]);
                     }
                     if ((edgeTableValue & (1 << 6)) > 0)
@@ -365,32 +370,32 @@ public class MarchingCubesChunkTessellator
                             x + 1,
                             y + 1,
                             z + 1,
-                            c.getValue(x + 1, y + 1, z + 1),
+                            c.getDensity(x + lodLevel, y + lodLevel, z + lodLevel),
                             x,
-                            y + 1,
-                            z + 1,
-                            c.getValue(x, y + 1, z + 1),
+                            y + lodLevel,
+                            z + lodLevel,
+                            c.getDensity(x, y + lodLevel, z + lodLevel),
                             vertexTemp[6]);
                         colorInterpolate(
-                            c.getValue(x + 1, y + 1, z + 1),
-                            c.getValue(x, y + 1, z + 1),
+                            c.getTemperature(x + lodLevel, y + lodLevel, z + lodLevel),
+                            c.getTemperature(x, y + lodLevel, z + lodLevel),
                             colorTemp[6]);
                     }
                     if ((edgeTableValue & (1 << 7)) > 0)
                     {
                         vertexInterpolate(
                             x,
-                            y + 1,
-                            z + 1,
-                            c.getValue(x, y + 1, z + 1),
+                            y + lodLevel,
+                            z + lodLevel,
+                            c.getDensity(x, y + lodLevel, z + lodLevel),
                             x,
-                            y + 1,
+                            y + lodLevel,
                             z,
-                            c.getValue(x, y + 1, z),
+                            c.getDensity(x, y + lodLevel, z),
                             vertexTemp[7]);
                         colorInterpolate(
-                            c.getValue(x, y + 1, z + 1),
-                            c.getValue(x, y + 1, z),
+                            c.getTemperature(x, y + lodLevel, z + lodLevel),
+                            c.getTemperature(x, y + lodLevel, z),
                             colorTemp[7]);
                     }
                     if ((edgeTableValue & (1 << 8)) > 0)
@@ -399,49 +404,49 @@ public class MarchingCubesChunkTessellator
                             x,
                             y,
                             z,
-                            c.getValue(x, y, z),
+                            c.getDensity(x, y, z),
                             x,
-                            y + 1,
+                            y + lodLevel,
                             z,
-                            c.getValue(x, y + 1, z),
+                            c.getDensity(x, y + lodLevel, z),
                             vertexTemp[8]);
                         colorInterpolate(
-                            c.getValue(x, y, z),
-                            c.getValue(x, y + 1, z),
+                            c.getTemperature(x, y, z),
+                            c.getTemperature(x, y + lodLevel, z),
                             colorTemp[8]);
                     }
                     if ((edgeTableValue & (1 << 9)) > 0)
                     {
                         vertexInterpolate(
-                            x + 1,
+                            x + lodLevel,
                             y,
                             z,
-                            c.getValue(x + 1, y, z),
-                            x + 1,
-                            y + 1,
+                            c.getDensity(x + lodLevel, y, z),
+                            x + lodLevel,
+                            y + lodLevel,
                             z,
-                            c.getValue(x + 1, y + 1, z),
+                            c.getDensity(x + lodLevel, y + lodLevel, z),
                             vertexTemp[9]);
                         colorInterpolate(
-                            c.getValue(x + 1, y, z),
-                            c.getValue(x + 1, y + 1, z),
+                            c.getTemperature(x + lodLevel, y, z),
+                            c.getTemperature(x + lodLevel, y + lodLevel, z),
                             colorTemp[9]);
                     }
                     if ((edgeTableValue & (1 << 10)) > 0)
                     {
                         vertexInterpolate(
-                            x + 1,
+                            x + lodLevel,
                             y,
-                            z + 1,
-                            c.getValue(x + 1, y, z + 1),
-                            x + 1,
-                            y + 1,
-                            z + 1,
-                            c.getValue(x + 1, y + 1, z + 1),
+                            z + lodLevel,
+                            c.getDensity(x + lodLevel, y, z + lodLevel),
+                            x + lodLevel,
+                            y + lodLevel,
+                            z + lodLevel,
+                            c.getDensity(x + lodLevel, y + lodLevel, z + lodLevel),
                             vertexTemp[10]);
                         colorInterpolate(
-                            c.getValue(x + 1, y, z + 1),
-                            c.getValue(x + 1, y + 1, z + 1),
+                            c.getTemperature(x + lodLevel, y, z + lodLevel),
+                            c.getTemperature(x + lodLevel, y + lodLevel, z + lodLevel),
                             colorTemp[10]);
                     }
                     if ((edgeTableValue & (1 << 11)) > 0)
@@ -449,16 +454,16 @@ public class MarchingCubesChunkTessellator
                         vertexInterpolate(
                             x,
                             y,
-                            z + 1,
-                            c.getValue(x, y, z + 1),
+                            z + lodLevel,
+                            c.getDensity(x, y, z + lodLevel),
                             x,
-                            y + 1,
-                            z + 1,
-                            c.getValue(x, y + 1, z + 1),
+                            y + lodLevel,
+                            z + lodLevel,
+                            c.getDensity(x, y + lodLevel, z + lodLevel),
                             vertexTemp[11]);
                         colorInterpolate(
-                            c.getValue(x, y, z + 1),
-                            c.getValue(x, y + 1, z + 1),
+                            c.getTemperature(x, y, z + lodLevel),
+                            c.getTemperature(x, y + lodLevel, z + lodLevel),
                             colorTemp[11]);
                     }
                     for (int i = 0; i < 12; i++)
@@ -611,7 +616,7 @@ public class MarchingCubesChunkTessellator
         float[] color)
     {
         float hue1 = 0.0f;
-        float sat1 = .5f;
+        float sat1 = 1f;
         float val1 = 1;
         float hue2 = 360.0f;
         float sat2 = 1f;
@@ -648,17 +653,17 @@ public class MarchingCubesChunkTessellator
     }
 
 
-    private void calculateNumberOfVerticesAndIndices(Chunk c)
+    private void calculateNumberOfVerticesAndIndices()
     {
         numVertices = 0;
         numIndices = 0;
-        for (int x = 0; x < Chunk.SIZE; x++)
+        for (int x = 0; x < Chunk.SIZE; x+=lodLevel)
         {
-            for (int y = 0; y < Chunk.SIZE; y++)
+            for (int y = 0; y < Chunk.SIZE; y+=lodLevel)
             {
-                for (int z = 0; z < Chunk.SIZE; z++)
+                for (int z = 0; z < Chunk.SIZE; z+=lodLevel)
                 {
-                    int cubeIndex = getCubeIndex(c, x, y, z);
+                    int cubeIndex = getCubeIndex(x, y, z);
                     numIndices += TRIANGLE_TABLE[cubeIndex].length;
                     int edgeTableValue = EDGE_TABLE[cubeIndex];
                     for (int i = 0; i < 12; i++)
@@ -674,38 +679,38 @@ public class MarchingCubesChunkTessellator
     }
 
 
-    private int getCubeIndex(Chunk c, int x, int y, int z)
+    private int getCubeIndex(int x, int y, int z)
     {
         int cubeIndex = 0;
-        if (c.getValue(x, y, z) <= 0)
+        if (c.getDensity(x, y, z) <= 0)
         {
             cubeIndex |= 1;
         }
-        if (c.getValue(x + 1, y, z) <= 0)
+        if (c.getDensity(x + lodLevel, y, z) <= 0)
         {
             cubeIndex |= 1 << 1;
         }
-        if (c.getValue(x + 1, y, z + 1) <= 0)
+        if (c.getDensity(x + lodLevel, y, z + lodLevel) <= 0)
         {
             cubeIndex |= 1 << 2;
         }
-        if (c.getValue(x, y, z + 1) <= 0)
+        if (c.getDensity(x, y, z + lodLevel) <= 0)
         {
             cubeIndex |= 1 << 3;
         }
-        if (c.getValue(x, y + 1, z) <= 0)
+        if (c.getDensity(x, y + lodLevel, z) <= 0)
         {
             cubeIndex |= 1 << 4;
         }
-        if (c.getValue(x + 1, y + 1, z) <= 0)
+        if (c.getDensity(x + lodLevel, y + lodLevel, z) <= 0)
         {
             cubeIndex |= 1 << 5;
         }
-        if (c.getValue(x + 1, y + 1, z + 1) <= 0)
+        if (c.getDensity(x + lodLevel, y + lodLevel, z + lodLevel) <= 0)
         {
             cubeIndex |= 1 << 6;
         }
-        if (c.getValue(x, y + 1, z + 1) <= 0)
+        if (c.getDensity(x, y + lodLevel, z + lodLevel) <= 0)
         {
             cubeIndex |= 1 << 7;
         }

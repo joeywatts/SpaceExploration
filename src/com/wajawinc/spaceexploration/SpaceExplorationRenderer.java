@@ -1,80 +1,90 @@
 package com.wajawinc.spaceexploration;
 
+import javax.microedition.khronos.opengles.GL10;
+
+import rajawali.lights.DirectionalLight;
+import rajawali.renderer.RajawaliRenderer;
 import android.content.Context;
 import android.util.Log;
 import android.view.MotionEvent;
-import com.wajawinc.spaceexploration.universe.Chunk;
-import com.wajawinc.spaceexploration.universe.ChunkGeneratorExecutor;
-import com.wajawinc.spaceexploration.universe.Planet;
-import com.wajawinc.spaceexploration.universe.generator.NoisePlanetGenerator;
-import javax.microedition.khronos.opengles.GL10;
-import rajawali.lights.DirectionalLight;
-import rajawali.math.Number3D;
-import rajawali.renderer.RajawaliRenderer;
 
-public class SpaceExplorationRenderer
-    extends RajawaliRenderer
-{
-    private ChunkGeneratorExecutor chunkGeneratorExecutor;
+import com.wajawinc.spaceexploration.entity.Player;
+import com.wajawinc.spaceexploration.universe.Universe;
 
-    private Planet planet;
+public class SpaceExplorationRenderer extends RajawaliRenderer {
+	/*private ChunkGeneratorExecutor chunkGeneratorExecutor;
 
-    private DirectionalLight mLight;
+	private Planet planet;*/
 
-    private float touchX;
-    private float touchY;
+	private DirectionalLight mLight;
 
-    public SpaceExplorationRenderer(Context context)
-    {
-        super(context);
-        setFrameRate(60);
-    }
+	private Player player;
+	private Universe universe;
 
-    @Override
-    protected void initScene()
-    {
-        mLight = new DirectionalLight(1f, 0.2f, -1.0f);
-        mLight.setColor(1.0f, 1.0f, 1.0f);
-        mLight.setPower(2);
+	// private float touchX;
+	// private float touchY;
 
-        planet = new Planet(new Number3D(), new NoisePlanetGenerator());
-        planet.addLight(mLight);
-        addChild(planet);
+	public SpaceExplorationRenderer(Context context) {
+		super(context);
+		setFrameRate(60);
+	}
 
+	@Override
+	protected void initScene() {
+		mLight = new DirectionalLight(1f, 0.2f, -1.0f);
+		mLight.setColor(1.0f, 1.0f, 1.0f);
+		mLight.setPower(2);
 
-        chunkGeneratorExecutor = new ChunkGeneratorExecutor(this);
-        for (int x = -5; x <= 5; x++)
-            for (int y = -5; y <= 5; y++)
-                for (int z = -5; z <= 5; z++)
-                    chunkGeneratorExecutor.generateChunk(planet, new Number3D(x*Chunk.SIZE, y*Chunk.SIZE, z*Chunk.SIZE));
+		/*
+		planet = new Planet(new Number3D(), new NoisePlanetGenerator(0));
+		planet.addLight(mLight);
+		addChild(planet);
+		
 
-        mCamera.setFarPlane(10000f);
-        mCamera.setZ(512f);
-    }
+		chunkGeneratorExecutor = new ChunkGeneratorExecutor();
+		for (int x = -5; x <= 5; x++)
+			for (int y = -5; y <= 5; y++)
+				for (int z = -5; z <= 5; z++)
+					chunkGeneratorExecutor.generateChunk(planet, new Number3D(x
+							* Chunk.SIZE, y * Chunk.SIZE, z * Chunk.SIZE), ChunkTessellator.LOD_LEVEL_HIGHEST);*/
+		
+		
+		universe = new Universe(0, this);
+		player = new Player(universe);
+		universe.startUpdater();
 
-    @Override
-    public void onDrawFrame(GL10 glUnused)
-    {
-        super.onDrawFrame(glUnused);
-        ((SpaceExplorationActivity) mContext).setFPS(this.getFrameRate());
-        //planet.update(this.getFrameRate());
-        planet.setRotY(planet.getRotY()+1);
-    }
+		mCamera.setFarPlane(10000f);
+		mCamera.setZ(512f);
+	}
 
+	public Universe getUniverse() {
+		return universe;
+	}
 
-    @Override
-    public void onTouchEvent(MotionEvent event)
-    {
-        Log.d("TouchEvent", "got event");
-        if (event.getAction() == MotionEvent.ACTION_MOVE) {
-            float dx = event.getX()-touchX;
-            float dy = event.getY()-touchY;
-            //dx /= 500f;
-            //dy /= 500f;
-            //mSphere.setRotX(mSphere.getRotX()+dy);
-            //mSphere.setRotY(mSphere.getRotY()+dx);
-        }
-        touchX = event.getX();
-        touchY = event.getY();
-    }
+	public Player getPlayer() {
+		return player;
+	}
+
+	@Override
+	public void onDrawFrame(GL10 glUnused) {
+		super.onDrawFrame(glUnused);
+		((SpaceExplorationActivity) mContext).setFPS(this.getFrameRate());
+		// planet.update(this.getFrameRate());
+		//planet.setRotY(planet.getRotY() + 1);
+	}
+
+	@Override
+	public void onTouchEvent(MotionEvent event) {
+		Log.d("TouchEvent", "got event");
+		if (event.getAction() == MotionEvent.ACTION_MOVE) {
+			// float dx = event.getX()-touchX;
+			// float dy = event.getY()-touchY;
+			// dx /= 500f;
+			// dy /= 500f;
+			// mSphere.setRotX(mSphere.getRotX()+dy);
+			// mSphere.setRotY(mSphere.getRotY()+dx);
+		}
+		// touchX = event.getX();
+		// touchY = event.getY();
+	}
 }
