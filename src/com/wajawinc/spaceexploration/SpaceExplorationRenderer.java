@@ -23,6 +23,7 @@ public class SpaceExplorationRenderer
 
     private float touchX;
     private float touchY;
+    private long lastFrameTime;
 
     public SpaceExplorationRenderer(Context context)
     {
@@ -56,7 +57,13 @@ public class SpaceExplorationRenderer
     public void onDrawFrame(GL10 glUnused)
     {
         super.onDrawFrame(glUnused);
-        ((SpaceExplorationActivity) mContext).setFPS(this.getFrameRate());
+
+        long time = System.currentTimeMillis();
+        if (lastFrameTime != 0) {
+            float frameRate = 1.0f/(time-lastFrameTime);
+            ((SpaceExplorationActivity) mContext).setFPS(frameRate);
+        }
+        lastFrameTime = time;
         //planet.update(this.getFrameRate());
         planet.setRotY(planet.getRotY()+1);
     }
