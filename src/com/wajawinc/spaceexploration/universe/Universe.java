@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import rajawali.math.Number3D;
+import android.util.Log;
 
 import com.wajawinc.spaceexploration.SpaceExplorationRenderer;
 import com.wajawinc.spaceexploration.entity.Player;
@@ -35,6 +36,7 @@ public class Universe {
 	
 	private Number3D generationList[];
 	
+	private ChunkGeneratorThread chunkGenerator;
 	private UniverseUpdater updater;
 	
 	public Universe(int universeSeed, SpaceExplorationRenderer renderer) {
@@ -42,7 +44,6 @@ public class Universe {
 		this.renderer = renderer;
 		planets = new ConcurrentHashMap<Number3D, Planet>();
 		universeNoise = new Noise(universeSeed, 128.1245f);
-		//universeGridLocation = new Number3D();
 		generationList = new Number3D[SAMPLES_PER_DIVISION];
 	}
 	
@@ -103,8 +104,10 @@ public class Universe {
 			if (Math.abs(planetPos.x - playerPos.x) > UNIVERSE_DIVISION_SIZE || 
 					Math.abs(planetPos.y - playerPos.y) > UNIVERSE_DIVISION_SIZE ||
 					Math.abs(planetPos.z - playerPos.z) > UNIVERSE_DIVISION_SIZE) {
+				Log.d("updatePlanets", "Destroying planet: " + playerPos);
 				destroyPlanet(planetPos);
 			} else {
+				Log.d("updatePlanets", "Calling planet.update: " + playerPos);
 				planets.get(planetPos).update(playerPos);
 			}
 		}
@@ -113,11 +116,15 @@ public class Universe {
 	public void startUpdater() {
 		updater = new UniverseUpdater(this, renderer.getPlayer());
 		updater.start();
+		chunkGenerator = new ChunkGeneratorThread();
+		chunkGenerator.start();
 	}
 	
 	public void stopUpdater() {
 		updater.interrupt();
 		updater = null;
+		chunkGenerator.interrupt();
+		chunkGenerator = null;
 	}
 	
 	public void destroyPlanet(Number3D center) {
@@ -130,7 +137,7 @@ public class Universe {
 	}
 	
 	public void generatePlanet(Number3D center) {
-		Planet planet = new Planet(center, new NoisePlanetGenerator(universeSeed * 31 + center.hashCode()));
+		Planet planet = new Planet(this, center, new NoisePlanetGenerator(universeSeed * 31 + center.hashCode()));
 		planets.put(center, planet);
 		renderer.addChild(planet);
 	}
@@ -139,4 +146,7 @@ public class Universe {
 		return planets;
 	}
 
+	public ChunkGeneratorThread getChunkGenerator() {
+		return chunkGenerator;
+	}
 }

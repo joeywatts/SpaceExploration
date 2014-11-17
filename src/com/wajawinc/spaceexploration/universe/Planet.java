@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import rajawali.BaseObject3D;
 import rajawali.lights.DirectionalLight;
 import rajawali.math.Number3D;
+import android.util.Log;
 
 import com.wajawinc.spaceexploration.tessellation.ChunkTessellator;
 import com.wajawinc.spaceexploration.tessellation.MarchingCubesChunkTessellator;
@@ -24,6 +25,7 @@ public class Planet extends BaseObject3D {
 	private static final int LOW_LOD_DIST = 8 * Chunk.SIZE;
 	private static final int CHUNK_VIEW_DIST = LOW_LOD_DIST;
 
+	private Universe universe;
 	private PlanetGenerator generator;
 
 	private Map<Number3D, Chunk> chunks;
@@ -34,14 +36,18 @@ public class Planet extends BaseObject3D {
 	/**
 	 * Instantiates a new Planet object.
 	 *
+	 * @param universe
+	 *            the universe that the planet is in.
 	 * @param center
 	 *            the center of the planet, relative to the "center" of the
 	 *            universe.
 	 * @param generator
 	 *            the object that generates the planet's terrain
 	 */
-	public Planet(Number3D center, PlanetGenerator generator) {
+	public Planet(Universe universe, Number3D center, PlanetGenerator generator) {
+		this.universe = universe;
 		this.setPosition(center);
+		setScale(4.0f);
 		this.generator = generator;
 		chunks = new ConcurrentHashMap<Number3D, Chunk>();
 
@@ -67,8 +73,10 @@ public class Planet extends BaseObject3D {
 	public void generateChunk(Number3D loc, int lodLevel) {
 		Chunk c = new Chunk(this, loc);
 		generator.generateChunk(c);
-		if (!c.tessellate(lodLevel))
+		if (!c.tessellate(lodLevel)) {
+			Log.d("Didn't generate", loc.toString());
 			return;
+		}
 		c.addLight(light);
 		addChild(c);
 		chunks.put(loc, c);
@@ -105,17 +113,17 @@ public class Planet extends BaseObject3D {
 					if (Math.abs(chunkX - x) < MAX_LOD_DIST
 							&& Math.abs(chunkY - y) < MAX_LOD_DIST
 							&& Math.abs(chunkZ - z) < MAX_LOD_DIST) {
-						ChunkGeneratorExecutor.getExecutor().generateChunk(
-								this, new Number3D(x, y, z),
+						universe.getChunkGenerator().generateChunk(this,
+								new Number3D(x, y, z),
 								ChunkTessellator.LOD_LEVEL_HIGHEST);
 					} else if (Math.abs(chunkX - x) < MED_LOD_DIST
 							&& Math.abs(chunkY - y) < MED_LOD_DIST
 							&& Math.abs(chunkZ - z) < MED_LOD_DIST) {
-						ChunkGeneratorExecutor.getExecutor().generateChunk(
+						universe.getChunkGenerator().generateChunk(
 								this, new Number3D(x, y, z),
 								ChunkTessellator.LOD_LEVEL_MEDIUM);
 					} else {
-						ChunkGeneratorExecutor.getExecutor().generateChunk(
+						universe.getChunkGenerator().generateChunk(
 								this, new Number3D(x, y, z),
 								ChunkTessellator.LOD_LEVEL_LOWEST);
 					}

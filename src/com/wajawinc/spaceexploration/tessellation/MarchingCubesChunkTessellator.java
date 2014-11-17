@@ -636,13 +636,14 @@ public class MarchingCubesChunkTessellator
             setColor(hue1, sat1, val1, color);
             return;
         }
-        float interp = (0 - value1) / (value2 - value1);
-        interp = (float) Math.cos(interp*Math.PI*2)*.5f + .5f;
-        Log.d("interp", interp+"");
+        //float interp = (value1 + value2)/2;
+        //interp /= (value1 + value2);
+        //interp = Math.abs(interp);
+       // interp = (float) Math.cos(interp*Math.PI*2)*.5f + .5f;
         setColor(
-            hue1 + interp * (hue2 - hue1),
-            sat1 + interp * (sat2 - sat1),
-            val1 + interp * (val2 - val1),
+            value1 * hue1 + value2 * (hue2),
+            value1 * sat1 + value2 * (sat2),
+            value1 * val1 + value2 * (val2),
             color);
     }
 

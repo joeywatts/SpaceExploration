@@ -23,9 +23,7 @@ public class NoisePlanetGenerator implements PlanetGenerator {
 
 	public NoisePlanetGenerator(int planetSeed) {
 		random.setSeed(planetSeed);
-		radius = random.nextInt(MAX_PLANET_RADIUS
-				- MIN_PLANET_RADIUS)
-				+ MIN_PLANET_RADIUS;
+		radius = 3*Chunk.SIZE;
 		densityNoise = new Noise(planetSeed, 256.1353462f);
 		tempNoise = new Noise(planetSeed + 1, 128.1254f);
 	}
@@ -103,13 +101,15 @@ public class NoisePlanetGenerator implements PlanetGenerator {
 	}
 
 	public float calculateDensity(int x, int y, int z) {
+		if (x <= -3*Chunk.SIZE || x >= Chunk.SIZE*4 || y <= -3*Chunk.SIZE || y >= 4*Chunk.SIZE || z <= -3*Chunk.SIZE || z >= 4 * Chunk.SIZE)
+			return 0;
 		float noise = densityNoise.getNoiseValue(x, y, z);
 		float adjustedNoise = (float) Math.cos(noise) * 0.5f + 0.5f;
 		float dist = (float) Math.sqrt(x * x + y * y + z * z) / radius;
 		if (dist > 1)
 			dist = 1;
-		float val = (.65f * adjustedNoise + .35f * dist);
-		return 0.85f - val;
+		float val = (0.7f*adjustedNoise + (1 - dist)*0.3f);
+		return val - .68f;
 	}
 
 	public float calculateTemperature(int x, int y, int z) {

@@ -16,7 +16,7 @@ public class UniverseUpdater extends Thread {
 		while (!this.isInterrupted()) {
 			universe.update(player);
 			try {
-				Thread.sleep(150);
+				Thread.sleep(300);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}

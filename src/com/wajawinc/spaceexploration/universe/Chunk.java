@@ -18,8 +18,6 @@ public class Chunk extends BaseObject3D {
 	private float[][][] density;
 	private float[][][] temperature;
 
-	private int lodLevel;
-
 	/**
 	 * Instantiates a new Chunk at a given distance from the planet's center.
 	 *
@@ -149,7 +147,7 @@ public class Chunk extends BaseObject3D {
 		mat.setAmbientColor(1, 1, 1, 1);
 		mat.setAmbientIntensity(0.5f);
 		setMaterial(mat);
-		setBackSided(true);
+		setDoubleSided(true);
 		return true;
 	}
 
