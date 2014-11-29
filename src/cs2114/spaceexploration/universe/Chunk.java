@@ -1,10 +1,11 @@
-package com.wajawinc.spaceexploration.universe;
+package cs2114.spaceexploration.universe;
 
+//Class depends upon the Rajawali 3D library (stable v0.7).
+
+import cs2114.spaceexploration.tessellation.ChunkTessellator;
 import rajawali.BaseObject3D;
 import rajawali.materials.DiffuseMaterial;
 import rajawali.math.Number3D;
-
-import com.wajawinc.spaceexploration.tessellation.ChunkTessellator;
 
 /**
  * A Chunk represents a section of Planet. Planets are split into Chunks in
@@ -39,7 +40,7 @@ public class Chunk extends BaseObject3D {
 
 	/**
 	 * Sets the temperature at a corner of the chunk.
-	 * 
+	 *
 	 * @param x
 	 *            identifies the x coordinate (either 0 or 1).
 	 * @param y
@@ -55,7 +56,7 @@ public class Chunk extends BaseObject3D {
 
 	/**
 	 * Sets the density value at a certain position within the chunk.
-	 * 
+	 *
 	 * @param x
 	 *            the x coordinate within the chunk.
 	 * @param y
@@ -71,7 +72,7 @@ public class Chunk extends BaseObject3D {
 
 	/**
 	 * Gets the density value at a point within the chunk.
-	 * 
+	 *
 	 * @param x
 	 *            the x coordinate within the chunk.
 	 * @param y
@@ -87,7 +88,7 @@ public class Chunk extends BaseObject3D {
 	/**
 	 * Gets the temperature at a point within the chunk by interpolating between
 	 * the sampled temperatures at the corners of the chunk.
-	 * 
+	 *
 	 * @param x
 	 *            the x coordinate within the chunk.
 	 * @param y
@@ -126,11 +127,11 @@ public class Chunk extends BaseObject3D {
 
 	/**
 	 * Generates the isosurface for this Chunk.
-	 * 
+	 *
 	 * @param lodLevel
 	 *            the Level of Detail to tessellate the Chunk at (Must be a
 	 *            constant from ChunkTessellator).
-	 * 
+	 *
 	 * @return true if an isosurface was generated.
 	 */
 	public boolean tessellate(int lodLevel) {

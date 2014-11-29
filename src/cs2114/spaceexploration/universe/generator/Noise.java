@@ -1,4 +1,4 @@
-package com.wajawinc.spaceexploration.universe.generator;
+package cs2114.spaceexploration.universe.generator;
 
 
 public class Noise

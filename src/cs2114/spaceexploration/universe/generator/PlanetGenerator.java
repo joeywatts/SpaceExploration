@@ -1,6 +1,6 @@
-package com.wajawinc.spaceexploration.universe.generator;
+package cs2114.spaceexploration.universe.generator;
 
-import com.wajawinc.spaceexploration.universe.Chunk;
+import cs2114.spaceexploration.universe.Chunk;
 
 /**
  * PlanetGenerator is an interface that facilitates the generation of a Planet.
@@ -11,7 +11,7 @@ public interface PlanetGenerator {
 	/**
 	 * Generates the Chunk. Usually involves setting the density values for each
 	 * point and the temperature values for each corner.
-	 * 
+	 *
 	 * @param c
 	 *            the Chunk to generate.
 	 */

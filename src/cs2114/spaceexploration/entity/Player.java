@@ -1,10 +1,21 @@
-package com.wajawinc.spaceexploration.entity;
+package cs2114.spaceexploration.entity;
 
-import com.wajawinc.spaceexploration.universe.Planet;
-import com.wajawinc.spaceexploration.universe.Universe;
+// Class depends upon the Rajawali 3D library (stable v0.7).
+
+import cs2114.spaceexploration.universe.Planet;
+import cs2114.spaceexploration.universe.Universe;
 import rajawali.BaseObject3D;
 import rajawali.math.Number3D;
 
+// -------------------------------------------------------------------------
+/**
+ *  Player is an object that represents the game's Player.
+ *
+ *  @author jwatts96
+ *  @author garnesen
+ *  @author jam0704
+ *  @version Nov 17, 2014
+ */
 public class Player extends BaseObject3D
 {
     private Number3D lastPosition;

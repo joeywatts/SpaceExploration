@@ -1,19 +1,20 @@
-package com.wajawinc.spaceexploration.universe.generator;
+package cs2114.spaceexploration.universe.generator;
 
+//Class depends upon the Rajawali 3D library (stable v0.7).
+
+import cs2114.spaceexploration.universe.Chunk;
+import cs2114.spaceexploration.universe.Planet;
 import java.util.Random;
-
 import rajawali.math.Number3D;
 
-import com.wajawinc.spaceexploration.universe.Chunk;
-import com.wajawinc.spaceexploration.universe.Planet;
 
 public class NoisePlanetGenerator implements PlanetGenerator {
 	private static final Random random = new Random();
-	
+
 	private static final int SAMPLE_RATE_X = 8;
 	private static final int SAMPLE_RATE_Y = 8;
 	private static final int SAMPLE_RATE_Z = 8;
-	
+
 	private static final int MIN_PLANET_RADIUS = 300;
 	private static final int MAX_PLANET_RADIUS = Planet.MAX_PLANET_SIZE;
 
@@ -24,7 +25,7 @@ public class NoisePlanetGenerator implements PlanetGenerator {
 	public NoisePlanetGenerator(int planetSeed) {
 		random.setSeed(planetSeed);
 		radius = 3*Chunk.SIZE;
-		densityNoise = new Noise(planetSeed, 256.1353462f);
+		densityNoise = new Noise(planetSeed, 64.1353462f);
 		tempNoise = new Noise(planetSeed + 1, 128.1254f);
 	}
 
@@ -108,8 +109,8 @@ public class NoisePlanetGenerator implements PlanetGenerator {
 		float dist = (float) Math.sqrt(x * x + y * y + z * z) / radius;
 		if (dist > 1)
 			dist = 1;
-		float val = (0.7f*adjustedNoise + (1 - dist)*0.3f);
-		return val - .68f;
+		float val = (0.7f*adjustedNoise + dist*0.3f);
+		return .85f - val;
 	}
 
 	public float calculateTemperature(int x, int y, int z) {

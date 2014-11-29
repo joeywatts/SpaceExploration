@@ -1,6 +1,8 @@
-package com.wajawinc.spaceexploration.universe;
+package cs2114.spaceexploration.universe;
 
-import com.wajawinc.spaceexploration.entity.Player;
+//Class depends upon the Rajawali 3D library (stable v0.7).
+
+import cs2114.spaceexploration.entity.Player;
 
 public class UniverseUpdater extends Thread {
 

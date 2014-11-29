@@ -1,6 +1,8 @@
-package com.wajawinc.spaceexploration.universe.generator;
+package cs2114.spaceexploration.universe.generator;
 
-import com.wajawinc.spaceexploration.universe.Chunk;
+//Class depends upon the Rajawali 3D library (stable v0.7).
+
+import cs2114.spaceexploration.universe.Chunk;
 import rajawali.math.Number3D;
 
 public class SpherePlanetGenerator implements PlanetGenerator

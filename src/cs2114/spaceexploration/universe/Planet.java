@@ -1,16 +1,16 @@
-package com.wajawinc.spaceexploration.universe;
+package cs2114.spaceexploration.universe;
 
+//Class depends upon the Rajawali 3D library (stable v0.7).
+
+import cs2114.spaceexploration.tessellation.ChunkTessellator;
+import cs2114.spaceexploration.tessellation.MarchingCubesChunkTessellator;
+import cs2114.spaceexploration.universe.generator.PlanetGenerator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 import rajawali.BaseObject3D;
 import rajawali.lights.DirectionalLight;
 import rajawali.math.Number3D;
 import android.util.Log;
-
-import com.wajawinc.spaceexploration.tessellation.ChunkTessellator;
-import com.wajawinc.spaceexploration.tessellation.MarchingCubesChunkTessellator;
-import com.wajawinc.spaceexploration.universe.generator.PlanetGenerator;
 
 // -------------------------------------------------------------------------
 /**
@@ -63,7 +63,7 @@ public class Planet extends BaseObject3D {
 	 * Generates a Chunk for the Planet. It should be noted that this method is
 	 * synchronous, so it should never be called on the render thread. See the
 	 * ChunkGeneratorExecutor class.
-	 * 
+	 *
 	 * @param loc
 	 *            the location of the Chunk being generated.
 	 * @param lodLevel

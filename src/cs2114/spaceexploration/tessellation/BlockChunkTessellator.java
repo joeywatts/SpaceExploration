@@ -1,6 +1,6 @@
-package com.wajawinc.spaceexploration.tessellation;
+package cs2114.spaceexploration.tessellation;
 
-import com.wajawinc.spaceexploration.universe.Chunk;
+import cs2114.spaceexploration.universe.Chunk;
 
 public class BlockChunkTessellator implements ChunkTessellator
 {

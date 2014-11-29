@@ -1,8 +1,8 @@
-package com.wajawinc.spaceexploration.tessellation;
+package cs2114.spaceexploration.tessellation;
 
+import cs2114.spaceexploration.universe.Chunk;
 import android.graphics.Color;
 import android.util.Log;
-import com.wajawinc.spaceexploration.universe.Chunk;
 
 // -------------------------------------------------------------------------
 /**
