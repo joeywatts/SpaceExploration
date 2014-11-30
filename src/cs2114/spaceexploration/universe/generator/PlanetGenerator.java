@@ -1,6 +1,7 @@
 package cs2114.spaceexploration.universe.generator;
 
 import cs2114.spaceexploration.universe.Chunk;
+import cs2114.spaceexploration.universe.Planet;
 
 /**
  * PlanetGenerator is an interface that facilitates the generation of a Planet.
@@ -8,6 +9,7 @@ import cs2114.spaceexploration.universe.Chunk;
  * class, and is called by the Planet when new Chunks are generated.
  */
 public interface PlanetGenerator {
+	public int getPlanetSize();
 	/**
 	 * Generates the Chunk. Usually involves setting the density values for each
 	 * point and the temperature values for each corner.
@@ -16,4 +18,5 @@ public interface PlanetGenerator {
 	 *            the Chunk to generate.
 	 */
 	public void generateChunk(Chunk c);
+	public Chunk generatePreview(Planet p);
 }

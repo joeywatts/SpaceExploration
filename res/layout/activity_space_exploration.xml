@@ -9,8 +9,35 @@
     tools:context="cs2114.spaceexploration.SpaceExplorationActivity" >
 
     <TextView
+        android:id="@+id/fpsText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/hello_world" />
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true" />
+    
+    <cs2114.spaceexploration.view.AnalogStick
+        android:id="@+id/leftAnalogStick"
+        android:layout_width="125dp"
+        android:layout_height="125dp"
+        android:layout_margin="25dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentBottom="true" />
+    
+    <!--  <cs2114.spaceexploration.view.AnalogStick
+        android:id="@+id/rightAnalogStick"
+        android:layout_width="125dp"
+        android:layout_height="125dp"
+        android:layout_margin="25dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true" /> -->
+        
+        <Button android:id="@+id/accelerate"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:background="@drawable/accelerate_button"
+            android:text="G"
+            android:textColor="#ffffff"
+            android:layout_alignParentRight="true"
+            android:layout_alignBottom="@id/leftAnalogStick" />
 
 </RelativeLayout>

@@ -2,8 +2,9 @@ package cs2114.spaceexploration.universe.generator;
 
 //Class depends upon the Rajawali 3D library (stable v0.7).
 
-import cs2114.spaceexploration.universe.Chunk;
 import rajawali.math.Number3D;
+import cs2114.spaceexploration.universe.Chunk;
+import cs2114.spaceexploration.universe.Planet;
 
 public class SpherePlanetGenerator implements PlanetGenerator
 {
@@ -12,6 +13,10 @@ public class SpherePlanetGenerator implements PlanetGenerator
     {
     }
 
+    public int getPlanetSize() {
+    	return Chunk.SIZE;
+    }
+    
     public void generateChunk(Chunk c)
     {
     	Number3D loc = c.getPosition();
@@ -25,6 +30,13 @@ public class SpherePlanetGenerator implements PlanetGenerator
                 }
             }
         }
+    }
+    
+    @Override
+    public Chunk generatePreview(Planet planet) {
+    	Chunk chunk = new Chunk(planet, new Number3D());
+    	generateChunk(chunk);
+    	return chunk;
     }
 
     public float calculateDensity(int x, int y, int z)

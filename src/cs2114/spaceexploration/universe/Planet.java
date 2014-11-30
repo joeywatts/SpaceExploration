@@ -2,15 +2,17 @@ package cs2114.spaceexploration.universe;
 
 //Class depends upon the Rajawali 3D library (stable v0.7).
 
-import cs2114.spaceexploration.tessellation.ChunkTessellator;
-import cs2114.spaceexploration.tessellation.MarchingCubesChunkTessellator;
-import cs2114.spaceexploration.universe.generator.PlanetGenerator;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
+
 import rajawali.BaseObject3D;
 import rajawali.lights.DirectionalLight;
 import rajawali.math.Number3D;
 import android.util.Log;
+import cs2114.spaceexploration.tessellation.ChunkTessellator;
+import cs2114.spaceexploration.tessellation.MarchingCubesChunkTessellator;
+import cs2114.spaceexploration.universe.generator.PlanetGenerator;
 
 // -------------------------------------------------------------------------
 /**
@@ -19,19 +21,26 @@ import android.util.Log;
  * graphically.
  */
 public class Planet extends BaseObject3D {
-	public static final int MAX_PLANET_SIZE = 2000;
-	private static final int MAX_LOD_DIST = 3 * Chunk.SIZE;
-	private static final int MED_LOD_DIST = 6 * Chunk.SIZE;
-	private static final int LOW_LOD_DIST = 8 * Chunk.SIZE;
-	private static final int CHUNK_VIEW_DIST = LOW_LOD_DIST;
+	public static final int MAX_PLANET_SIZE = 500;
+	public static final int MIN_PLANET_SIZE = 200;
 
 	private Universe universe;
 	private PlanetGenerator generator;
+	
+	private Number3D center;
 
 	private Map<Number3D, Chunk> chunks;
 
 	private DirectionalLight light;
 	private Number3D lightDir = new Number3D();
+
+	/* the scale of the planet before the far plane hack (see the update method) */
+	private float fullPlanetScale;
+
+	/*
+	 * A single chunk to show the planet at a low detail from a distance.
+	 */
+	private Chunk previewChunk;
 
 	/**
 	 * Instantiates a new Planet object.
@@ -46,11 +55,13 @@ public class Planet extends BaseObject3D {
 	 */
 	public Planet(Universe universe, Number3D center, PlanetGenerator generator) {
 		this.universe = universe;
-		this.setPosition(center);
-		setScale(4.0f);
+		this.setPosition(this.center = center);
+		fullPlanetScale = 4.0f;
+		setScale(fullPlanetScale);
 		this.generator = generator;
 		chunks = new ConcurrentHashMap<Number3D, Chunk>();
-
+		previewChunk = generator.generatePreview(this);
+		addChild(previewChunk);
 		lightDir.x = 1;
 		lightDir.y = 0.2f;
 		lightDir.z = -1f;
@@ -62,7 +73,7 @@ public class Planet extends BaseObject3D {
 	/**
 	 * Generates a Chunk for the Planet. It should be noted that this method is
 	 * synchronous, so it should never be called on the render thread. See the
-	 * ChunkGeneratorExecutor class.
+	 * ChunkGeneratorThread class.
 	 *
 	 * @param loc
 	 *            the location of the Chunk being generated.
@@ -80,56 +91,6 @@ public class Planet extends BaseObject3D {
 		c.addLight(light);
 		addChild(c);
 		chunks.put(loc, c);
-	}
-
-	public void update(Number3D playerPos) {
-		float x = playerPos.x - getPosition().x;
-		float y = playerPos.y - getPosition().y;
-		float z = playerPos.z - getPosition().z;
-		int chunkX = (int) Math.floor(x / Chunk.SIZE) * Chunk.SIZE;
-		int chunkY = (int) Math.floor(y / Chunk.SIZE) * Chunk.SIZE;
-		int chunkZ = (int) Math.floor(z / Chunk.SIZE) * Chunk.SIZE;
-		removeFarChunks(chunkX, chunkY, chunkZ);
-		generateSurroundingChunks(chunkX, chunkY, chunkZ);
-	}
-
-	private void removeFarChunks(int chunkX, int chunkY, int chunkZ) {
-		for (Number3D chunkLoc : chunks.keySet()) {
-			if (Math.abs(chunkLoc.x - chunkX) > CHUNK_VIEW_DIST
-					|| Math.abs(chunkLoc.y - chunkY) > CHUNK_VIEW_DIST
-					|| Math.abs(chunkLoc.z - chunkZ) > CHUNK_VIEW_DIST) {
-				removeChild(chunks.get(chunkLoc));
-				chunks.remove(chunkLoc);
-			}
-		}
-	}
-
-	private void generateSurroundingChunks(int chunkX, int chunkY, int chunkZ) {
-		for (int x = chunkX - CHUNK_VIEW_DIST; x <= chunkX + CHUNK_VIEW_DIST; x += Chunk.SIZE) {
-			for (int y = chunkY - CHUNK_VIEW_DIST; y <= chunkY
-					+ CHUNK_VIEW_DIST; y += Chunk.SIZE) {
-				for (int z = chunkZ - CHUNK_VIEW_DIST; z <= chunkZ
-						+ CHUNK_VIEW_DIST; z += Chunk.SIZE) {
-					if (Math.abs(chunkX - x) < MAX_LOD_DIST
-							&& Math.abs(chunkY - y) < MAX_LOD_DIST
-							&& Math.abs(chunkZ - z) < MAX_LOD_DIST) {
-						universe.getChunkGenerator().generateChunk(this,
-								new Number3D(x, y, z),
-								ChunkTessellator.LOD_LEVEL_HIGHEST);
-					} else if (Math.abs(chunkX - x) < MED_LOD_DIST
-							&& Math.abs(chunkY - y) < MED_LOD_DIST
-							&& Math.abs(chunkZ - z) < MED_LOD_DIST) {
-						universe.getChunkGenerator().generateChunk(
-								this, new Number3D(x, y, z),
-								ChunkTessellator.LOD_LEVEL_MEDIUM);
-					} else {
-						universe.getChunkGenerator().generateChunk(
-								this, new Number3D(x, y, z),
-								ChunkTessellator.LOD_LEVEL_LOWEST);
-					}
-				}
-			}
-		}
 	}
 
 	public Map<Number3D, Chunk> getChunks() {
@@ -152,5 +113,61 @@ public class Planet extends BaseObject3D {
 	 */
 	public ChunkTessellator getChunkTessellator() {
 		return new MarchingCubesChunkTessellator();
+	}
+
+	/**
+	 * Checks if the preview Chunk is showing.
+	 * 
+	 * @return true if the preview Chunk is showing.
+	 */
+	public boolean isShowingPreview() {
+		return previewChunk != null;
+	}
+
+	/**
+	 * Generates all of the planet's chunks and removes the preview chunk.
+	 */
+	public void generatePlanet() {
+		int chunkNum = (int) Math.ceil(generator.getPlanetSize()
+				/ (float) Chunk.SIZE);
+		for (int cx = (int) -Math.floor(chunkNum / 2.0f); cx <= (int) Math
+				.ceil(chunkNum / 2.0f); cx++) {
+			for (int cy = (int) -Math.floor(chunkNum / 2.0f); cy <= (int) Math
+					.ceil(chunkNum / 2.0f); cy++) {
+				for (int cz = (int) -Math.floor(chunkNum / 2.0f); cz <= (int) Math
+						.ceil(chunkNum / 2.0f); cz++) {
+					generateChunk(new Number3D(cx * Chunk.SIZE,
+							cy * Chunk.SIZE, cz * Chunk.SIZE),
+							ChunkTessellator.LOD_LEVEL_HIGHEST);
+				}
+			}
+		}
+		if (previewChunk != null) {
+			removeChild(previewChunk);
+			previewChunk = null;
+		}
+	}
+
+	/**
+	 * Updates the planet's scale and position so that it can be seen by the
+	 * player and it is not clipped by the far plane.
+	 * 
+	 * @param playerLoc
+	 *            the player's location
+	 */
+	public void update(Number3D playerLoc) {
+		final float MAX_DIST = 900;
+		float distance = playerLoc.distanceTo(center);
+		if (distance > MAX_DIST) {
+			Number3D position = new Number3D(center);
+			position.subtract(playerLoc);
+			position.normalize();
+			position.multiply(MAX_DIST);
+			setScale(MAX_DIST / distance * fullPlanetScale);
+			setPosition(position);
+		} else {
+			setScale(fullPlanetScale);
+			setPosition(center);
+		}
 	}
 }

@@ -1,6 +1,5 @@
 package cs2114.spaceexploration;
 
-import com.wajawinc.spaceexploration.R;
 import android.widget.Toast;
 import android.content.Intent;
 import android.view.View;

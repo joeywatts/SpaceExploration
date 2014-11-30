@@ -2,11 +2,13 @@ package cs2114.spaceexploration.universe.generator;
 
 //Class depends upon the Rajawali 3D library (stable v0.7).
 
+import cs2114.spaceexploration.tessellation.ChunkTessellator;
 import cs2114.spaceexploration.universe.Chunk;
 import cs2114.spaceexploration.universe.Planet;
-import java.util.Random;
-import rajawali.math.Number3D;
 
+import java.util.Random;
+
+import rajawali.math.Number3D;
 
 public class NoisePlanetGenerator implements PlanetGenerator {
 	private static final Random random = new Random();
@@ -24,9 +26,13 @@ public class NoisePlanetGenerator implements PlanetGenerator {
 
 	public NoisePlanetGenerator(int planetSeed) {
 		random.setSeed(planetSeed);
-		radius = 3*Chunk.SIZE;
+		radius = 3 * Chunk.SIZE;
 		densityNoise = new Noise(planetSeed, 64.1353462f);
 		tempNoise = new Noise(planetSeed + 1, 128.1254f);
+	}
+	
+	public int getPlanetSize() {
+		return radius * 2;
 	}
 
 	public void generateChunk(Chunk c) {
@@ -101,15 +107,49 @@ public class NoisePlanetGenerator implements PlanetGenerator {
 
 	}
 
+	@Override
+	public Chunk generatePreview(Planet planet) {
+		Chunk chunk = new Chunk(planet, new Number3D());
+		float interval = 2 * radius / Chunk.SIZE;
+		for (int x = 0; x < Chunk.SIZE; x++) {
+			for (int y = 0; y < Chunk.SIZE; y++) {
+				for (int z = 0; z < Chunk.SIZE; z++) {
+					chunk.setDensity(x, y, z, calculateDensity((int) (x
+							* interval - radius),
+							(int) (y * interval - radius), (int) (z
+									* interval - radius)));
+				}
+			}
+		}
+		for (int x = 0; x < 2; x++) {
+			for (int y = 0; y < 2; y++) {
+				for (int z = 0; z < 2; z++) {
+					chunk.setTemperature(
+							x,
+							y,
+							z,
+							calculateTemperature(-radius + x * radius * 2,
+									-radius + y * radius * 2, -radius + z
+											* radius * 2));
+				}
+			}
+		}
+		chunk.tessellate(ChunkTessellator.LOD_LEVEL_HIGHEST);
+		chunk.setScale(interval);
+		return chunk;
+	}
+
 	public float calculateDensity(int x, int y, int z) {
-		if (x <= -3*Chunk.SIZE || x >= Chunk.SIZE*4 || y <= -3*Chunk.SIZE || y >= 4*Chunk.SIZE || z <= -3*Chunk.SIZE || z >= 4 * Chunk.SIZE)
+		if (x <= -3 * Chunk.SIZE || x >= Chunk.SIZE * 4 || y <= -3 * Chunk.SIZE
+				|| y >= 4 * Chunk.SIZE || z <= -3 * Chunk.SIZE
+				|| z >= 4 * Chunk.SIZE)
 			return 0;
 		float noise = densityNoise.getNoiseValue(x, y, z);
 		float adjustedNoise = (float) Math.cos(noise) * 0.5f + 0.5f;
 		float dist = (float) Math.sqrt(x * x + y * y + z * z) / radius;
 		if (dist > 1)
 			dist = 1;
-		float val = (0.7f*adjustedNoise + dist*0.3f);
+		float val = (0.7f * adjustedNoise + dist * 0.3f);
 		return .85f - val;
 	}
 
