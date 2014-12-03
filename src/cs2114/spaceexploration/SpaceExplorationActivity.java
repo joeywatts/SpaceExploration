@@ -24,21 +24,24 @@ public class SpaceExplorationActivity extends RajawaliActivity {
 
 	private AnalogStick leftAnalogStick;
 	private Button accelerateButton;
+	private Button brakeButton;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		layout = (RelativeLayout) getLayoutInflater().inflate(
-				R.layout.activity_space_exploration, mLayout);
+				R.layout.activity_space_exploration, null);
 		fpsTextView = (TextView) layout.findViewById(R.id.fpsText);
 		leftAnalogStick = (AnalogStick) layout.findViewById(R.id.leftAnalogStick);
 		accelerateButton = (Button) layout.findViewById(R.id.accelerate);
-		//mLayout.addView(layout);
+        brakeButton = (Button) layout.findViewById(R.id.brake);
+		mLayout.addView(layout);
 		if (mRenderer == null) {
 			mRenderer = new SpaceExplorationRenderer(this);
 		}
 		mRenderer.setAnalogStick(leftAnalogStick);
 		mRenderer.setAccelerateButton(accelerateButton);
+		mRenderer.setBrakeButton(brakeButton);
 		mRenderer.setSurfaceView(mSurfaceView);
 		super.setRenderer(mRenderer);
 	}

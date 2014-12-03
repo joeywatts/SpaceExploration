@@ -75,7 +75,7 @@ public class AnalogStick extends View {
 	/**
 	 * Gets the x component of the normalized vector that this analog stick
 	 * represents.
-	 * 
+	 *
 	 * @return the x component of the normalized vector.
 	 */
 	public float getNormalizedX() {
@@ -90,7 +90,7 @@ public class AnalogStick extends View {
 	/**
 	 * Gets the y component of the normalized vector that this analog stick
 	 * represents.
-	 * 
+	 *
 	 * @return the y component of the normalized vector.
 	 */
 	public float getNormalizedY() {
@@ -102,4 +102,14 @@ public class AnalogStick extends View {
 						+ stickLocationY * stickLocationY);
 	}
 
+	/**
+	 * Gets the ratio.
+	 *
+	 * @return the ratio
+	 */
+	public float getRatio() {
+	    float radius = getWidth() / 2;
+	    return ((float) Math.sqrt(stickLocationX * stickLocationX
+            + stickLocationY * stickLocationY)) / radius;
+	}
 }

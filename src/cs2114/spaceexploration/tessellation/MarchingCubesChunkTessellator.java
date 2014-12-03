@@ -2,7 +2,6 @@ package cs2114.spaceexploration.tessellation;
 
 import cs2114.spaceexploration.universe.Chunk;
 import android.graphics.Color;
-import android.util.Log;
 
 // -------------------------------------------------------------------------
 /**
@@ -225,7 +224,7 @@ public class MarchingCubesChunkTessellator
 
     private int                  numVertices;
     private int                  numIndices;
-    
+
     private int lodLevel;
     private Chunk c;
 
@@ -242,7 +241,6 @@ public class MarchingCubesChunkTessellator
         calculateNumberOfVerticesAndIndices();
         if (numVertices == 0 || numIndices == 0)
             return;
-        Log.d("Tessellator", "Verts: " + numVertices + " Index: " + numIndices);
         index = new int[numIndices];
         vertices = new float[numVertices * 3];
         colors = new float[numVertices * 4];

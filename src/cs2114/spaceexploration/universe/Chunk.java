@@ -2,6 +2,7 @@ package cs2114.spaceexploration.universe;
 
 //Class depends upon the Rajawali 3D library (stable v0.7).
 
+import android.util.Log;
 import cs2114.spaceexploration.tessellation.ChunkTessellator;
 import rajawali.BaseObject3D;
 import rajawali.materials.DiffuseMaterial;

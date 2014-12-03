@@ -2,12 +2,11 @@ package cs2114.spaceexploration.universe.generator;
 
 //Class depends upon the Rajawali 3D library (stable v0.7).
 
+import android.util.Log;
 import cs2114.spaceexploration.tessellation.ChunkTessellator;
 import cs2114.spaceexploration.universe.Chunk;
 import cs2114.spaceexploration.universe.Planet;
-
 import java.util.Random;
-
 import rajawali.math.Number3D;
 
 public class NoisePlanetGenerator implements PlanetGenerator {
@@ -28,9 +27,9 @@ public class NoisePlanetGenerator implements PlanetGenerator {
 		random.setSeed(planetSeed);
 		radius = 3 * Chunk.SIZE;
 		densityNoise = new Noise(planetSeed, 64.1353462f);
-		tempNoise = new Noise(planetSeed + 1, 128.1254f);
+		tempNoise = new Noise(planetSeed + 1, 4.1254f);
 	}
-	
+
 	public int getPlanetSize() {
 		return radius * 2;
 	}
@@ -154,6 +153,6 @@ public class NoisePlanetGenerator implements PlanetGenerator {
 	}
 
 	public float calculateTemperature(int x, int y, int z) {
-		return tempNoise.getNoiseValue(x, y, z);
+		return tempNoise.getNoiseValue(x*1.2345667f, y*0.456543f, z*0.46731f);
 	}
 }
