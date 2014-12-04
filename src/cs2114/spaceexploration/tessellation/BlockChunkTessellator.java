@@ -2,17 +2,29 @@ package cs2114.spaceexploration.tessellation;
 
 import cs2114.spaceexploration.universe.Chunk;
 
-public class BlockChunkTessellator implements ChunkTessellator
+// -------------------------------------------------------------------------
+/**
+ * BlockChunkTessellator is a ChunkTessellator that generates a cube surface
+ * from the scalar fields.
+ *
+ * @author jwatts96
+ * @author garnesen
+ * @author jam0704
+ * @version Nov 17, 2014
+ */
+public class BlockChunkTessellator
+    implements ChunkTessellator
 {
-    private float[] vertices;
-    private float[] uv;
-    private float[] normals;
-    private float[] colors;
-    private int[] index;
+    private float[]                vertices;
+    private float[]                uv;
+    private float[]                normals;
+    private float[]                colors;
+    private int[]                  index;
 
-    private final int TOP_FACE = 1, BOTTOM_FACE = 1 << 1, LEFT_FACE = 1 << 2,
-        RIGHT_FACE = 1 << 3, FRONT_FACE = 1 << 4, BACK_FACE = 1 << 5;
-    private final int TOP_FACE_INDEX = 0, BOTTOM_FACE_INDEX = 1,
+    private final int              TOP_FACE       = 1, BOTTOM_FACE = 1 << 1,
+        LEFT_FACE = 1 << 2, RIGHT_FACE = 1 << 3, FRONT_FACE = 1 << 4,
+        BACK_FACE = 1 << 5;
+    private final int              TOP_FACE_INDEX = 0, BOTTOM_FACE_INDEX = 1,
         LEFT_FACE_INDEX = 2, RIGHT_FACE_INDEX = 3, FRONT_FACE_INDEX = 4,
         BACK_FACE_INDEX = 5;
 
@@ -20,28 +32,24 @@ public class BlockChunkTessellator implements ChunkTessellator
      * A constant which stores all the vertex offsets for each face Accessed by
      * [face index]
      */
-    private static final float[][] FACE_VERTS   = {
+    private static final float[][] FACE_VERTS     = {
         { -.5f, .5f, .5f, .5f, .5f, .5f, .5f, .5f, -.5f, -.5f, .5f, -.5f },
         { -.5f, -.5f, .5f, .5f, -.5f, .5f, .5f, -.5f, -.5f, -.5f, -.5f, -.5f },
         { -.5f, .5f, .5f, -.5f, -.5f, .5f, -.5f, -.5f, -.5f, -.5f, .5f, -.5f },
         { .5f, .5f, .5f, .5f, -.5f, .5f, .5f, -.5f, -.5f, .5f, .5f, -.5f },
         { -.5f, .5f, -.5f, -.5f, -.5f, -.5f, .5f, -.5f, -.5f, .5f, .5f, -.5f },
         { -.5f, .5f, .5f, -.5f, -.5f, .5f, .5f, -.5f, .5f, .5f, .5f, .5f } };
-    private static final float[][] FACE_NORMALS = {
-        {0, 1, 0}, {0, -1, 0}, {-1, 0, 0}, {1, 0, 0}, {0, 0, 1}, {0, 0, -1}
-    };
-    private static final short[]     FACE_INDICES = { 0, 1, 2, 0, 2, 3 };
+    private static final float[][] FACE_NORMALS   = { { 0, 1, 0 },
+        { 0, -1, 0 }, { -1, 0, 0 }, { 1, 0, 0 }, { 0, 0, 1 }, { 0, 0, -1 } };
+    private static final short[]   FACE_INDICES   = { 0, 1, 2, 0, 2, 3 };
 
-    public BlockChunkTessellator()
-    {
-    }
 
     public void tessellateChunk(Chunk c, int lodLevel)
     {
         int faces = getNumberOfFaces(c);
         /* 3 values per vertex, 4 vertices per face */
         vertices = new float[faces * 3 * 4];
-        normals = new float[faces *3 * 4];
+        normals = new float[faces * 3 * 4];
         /* 4 color components per vertex, 4 vertices per face */
         colors = new float[faces * 4 * 4];
         /* 2 triangles per face, 3 index values per triangle */
@@ -65,20 +73,16 @@ public class BlockChunkTessellator implements ChunkTessellator
                         continue;
                     }
                     int face = getFaces(c, x, y, z);
-                    float[] color = {(float) Math.random(), (float) Math.random(), (float) Math.random(), 1};
+                    float[] color =
+                        { (float)Math.random(), (float)Math.random(),
+                            (float)Math.random(), 1 };
                     if ((face & TOP_FACE) != 0)
                     {
-                        addVertices(
-                            vertices,
-                            vertexIndex,
-                            TOP_FACE_INDEX,
-                            x,
-                            y,
-                            z);
-                        addNormals(normals, vertexIndex, TOP_FACE_INDEX);
-                        addIndices(index, indicesIndex, vertexIndex);
-                        addUVs(uv, uvIndex, value, TOP_FACE);
-                        addColor(colors, colorsIndex, color);
+                        addVertices(vertexIndex, TOP_FACE_INDEX, x, y, z);
+                        addNormals(vertexIndex, TOP_FACE_INDEX);
+                        addIndices(indicesIndex, vertexIndex);
+                        addUVs(uvIndex, value, TOP_FACE);
+                        addColor(colorsIndex, color);
                         vertexIndex += 12;
                         indicesIndex += 6;
                         uvIndex += 8;
@@ -86,17 +90,11 @@ public class BlockChunkTessellator implements ChunkTessellator
                     }
                     if ((face & BOTTOM_FACE) != 0)
                     {
-                        addVertices(
-                            vertices,
-                            vertexIndex,
-                            BOTTOM_FACE_INDEX,
-                            x,
-                            y,
-                            z);
-                        addNormals(normals, vertexIndex, BOTTOM_FACE_INDEX);
-                        addIndices(index, indicesIndex, vertexIndex);
-                        addUVs(uv, uvIndex, value, BOTTOM_FACE);
-                        addColor(colors, colorsIndex, color);
+                        addVertices(vertexIndex, BOTTOM_FACE_INDEX, x, y, z);
+                        addNormals(vertexIndex, BOTTOM_FACE_INDEX);
+                        addIndices(indicesIndex, vertexIndex);
+                        addUVs(uvIndex, value, BOTTOM_FACE);
+                        addColor(colorsIndex, color);
                         vertexIndex += 12;
                         indicesIndex += 6;
                         uvIndex += 8;
@@ -104,17 +102,11 @@ public class BlockChunkTessellator implements ChunkTessellator
                     }
                     if ((face & LEFT_FACE) != 0)
                     {
-                        addVertices(
-                            vertices,
-                            vertexIndex,
-                            LEFT_FACE_INDEX,
-                            x,
-                            y,
-                            z);
-                        addNormals(normals, vertexIndex, LEFT_FACE_INDEX);
-                        addIndices(index, indicesIndex, vertexIndex);
-                        addUVs(uv, uvIndex, value, LEFT_FACE);
-                        addColor(colors, colorsIndex, color);
+                        addVertices(vertexIndex, LEFT_FACE_INDEX, x, y, z);
+                        addNormals(vertexIndex, LEFT_FACE_INDEX);
+                        addIndices(indicesIndex, vertexIndex);
+                        addUVs(uvIndex, value, LEFT_FACE);
+                        addColor(colorsIndex, color);
                         vertexIndex += 12;
                         indicesIndex += 6;
                         uvIndex += 8;
@@ -122,17 +114,11 @@ public class BlockChunkTessellator implements ChunkTessellator
                     }
                     if ((face & RIGHT_FACE) != 0)
                     {
-                        addVertices(
-                            vertices,
-                            vertexIndex,
-                            RIGHT_FACE_INDEX,
-                            x,
-                            y,
-                            z);
-                        addNormals(normals, vertexIndex, RIGHT_FACE_INDEX);
-                        addIndices(index, indicesIndex, vertexIndex);
-                        addUVs(uv, uvIndex, value, RIGHT_FACE);
-                        addColor(colors, colorsIndex, color);
+                        addVertices(vertexIndex, RIGHT_FACE_INDEX, x, y, z);
+                        addNormals(vertexIndex, RIGHT_FACE_INDEX);
+                        addIndices(indicesIndex, vertexIndex);
+                        addUVs(uvIndex, value, RIGHT_FACE);
+                        addColor(colorsIndex, color);
                         vertexIndex += 12;
                         indicesIndex += 6;
                         uvIndex += 8;
@@ -140,17 +126,11 @@ public class BlockChunkTessellator implements ChunkTessellator
                     }
                     if ((face & BACK_FACE) != 0)
                     {
-                        addVertices(
-                            vertices,
-                            vertexIndex,
-                            BACK_FACE_INDEX,
-                            x,
-                            y,
-                            z);
-                        addIndices(index, indicesIndex, vertexIndex);
-                        addNormals(normals, vertexIndex, BACK_FACE_INDEX);
-                        addUVs(uv, uvIndex, value, BACK_FACE);
-                        addColor(colors, colorsIndex, color);
+                        addVertices(vertexIndex, BACK_FACE_INDEX, x, y, z);
+                        addIndices(indicesIndex, vertexIndex);
+                        addNormals(vertexIndex, BACK_FACE_INDEX);
+                        addUVs(uvIndex, value, BACK_FACE);
+                        addColor(colorsIndex, color);
                         vertexIndex += 12;
                         indicesIndex += 6;
                         uvIndex += 8;
@@ -158,17 +138,11 @@ public class BlockChunkTessellator implements ChunkTessellator
                     }
                     if ((face & FRONT_FACE) != 0)
                     {
-                        addVertices(
-                            vertices,
-                            vertexIndex,
-                            FRONT_FACE_INDEX,
-                            x,
-                            y,
-                            z);
-                        addNormals(normals, vertexIndex, FRONT_FACE_INDEX);
-                        addIndices(index, indicesIndex, vertexIndex);
-                        addUVs(uv, uvIndex, value, FRONT_FACE);
-                        addColor(colors, colorsIndex, color);
+                        addVertices(vertexIndex, FRONT_FACE_INDEX, x, y, z);
+                        addNormals(vertexIndex, FRONT_FACE_INDEX);
+                        addIndices(indicesIndex, vertexIndex);
+                        addUVs(uvIndex, value, FRONT_FACE);
+                        addColor(colorsIndex, color);
                         vertexIndex += 12;
                         indicesIndex += 6;
                         uvIndex += 8;
@@ -179,13 +153,8 @@ public class BlockChunkTessellator implements ChunkTessellator
         }
     }
 
-    private void addVertices(
-        float[] vertices,
-        int vertexIndex,
-        int faceIndex,
-        int x,
-        int y,
-        int z)
+
+    private void addVertices(int vertexIndex, int faceIndex, int x, int y, int z)
     {
         for (int i = 0; i < FACE_VERTS[faceIndex].length / 3; i++)
         {
@@ -197,25 +166,29 @@ public class BlockChunkTessellator implements ChunkTessellator
         }
     }
 
-    private void addNormals(float[] normals, int vertexIndex, int faceIndex) {
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < FACE_NORMALS[faceIndex].length; j++) {
-                normals[vertexIndex + i*3 + j] = FACE_NORMALS[faceIndex][j];
+
+    private void addNormals(int vertexIndex, int faceIndex)
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            for (int j = 0; j < FACE_NORMALS[faceIndex].length; j++)
+            {
+                normals[vertexIndex + i * 3 + j] = FACE_NORMALS[faceIndex][j];
             }
         }
     }
 
 
-    private void addIndices(int[] index, int indicesIndex, int vertIndex)
+    private void addIndices(int indicesIndex, int vertIndex)
     {
         for (int i = 0; i < FACE_INDICES.length; i++)
         {
-            index[indicesIndex + i] = FACE_INDICES[i] + vertIndex/3;
+            index[indicesIndex + i] = FACE_INDICES[i] + vertIndex / 3;
         }
     }
 
 
-    private void addUVs(float[] uv, int uvIndex, float value, int face)
+    private void addUVs(int uvIndex, float value, int face)
     {
         uv[uvIndex] = 0;
         uv[uvIndex + 1] = 0;
@@ -227,10 +200,14 @@ public class BlockChunkTessellator implements ChunkTessellator
         uv[uvIndex + 7] = 1;
     }
 
-    private void addColor(float[] colors, int colorsIndex, float[] color) {
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < color.length; j++) {
-                colors[colorsIndex + i*4 + j] = color[j];
+
+    private void addColor(int colorsIndex, float[] color)
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            for (int j = 0; j < color.length; j++)
+            {
+                colors[colorsIndex + i * 4 + j] = color[j];
             }
         }
     }
@@ -269,7 +246,7 @@ public class BlockChunkTessellator implements ChunkTessellator
                     {
                         faces++;
                     }
-                    if (z == Chunk.SIZE - 1 || c.getDensity(x, y, z + 1)== 0)
+                    if (z == Chunk.SIZE - 1 || c.getDensity(x, y, z + 1) == 0)
                     {
                         faces++;
                     }
@@ -311,25 +288,30 @@ public class BlockChunkTessellator implements ChunkTessellator
         return face;
     }
 
+
     public float[] getVertices()
     {
         return vertices;
     }
+
 
     public float[] getTextureCoords()
     {
         return uv;
     }
 
+
     public float[] getColors()
     {
         return colors;
     }
 
+
     public float[] getNormals()
     {
         return normals;
     }
+
 
     public int[] getIndices()
     {

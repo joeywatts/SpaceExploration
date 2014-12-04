@@ -1,21 +1,26 @@
 package cs2114.spaceexploration.entity;
 
-// Class depends upon the Rajawali 3D library (stable v0.7).
+// Class depends upon the Rajawali 3D library (stable v0.9).
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnDismissListener;
 import android.content.res.Resources;
-import android.util.Log;
 import cs2114.spaceexploration.R;
 import cs2114.spaceexploration.SpaceExplorationRenderer;
+import cs2114.spaceexploration.universe.Planet;
 import cs2114.spaceexploration.universe.Universe;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.Set;
 import rajawali.BaseObject3D;
+import rajawali.bounds.IBoundingVolume;
 import rajawali.lights.DirectionalLight;
-import rajawali.lights.PointLight;
 import rajawali.materials.DiffuseMaterial;
 import rajawali.materials.TextureInfo;
 import rajawali.materials.TextureManager;
 import rajawali.math.Number3D;
+import rajawali.math.Quaternion;
 import rajawali.parser.AParser.ParsingException;
 import rajawali.parser.ObjParser;
 
@@ -31,47 +36,80 @@ import rajawali.parser.ObjParser;
 public class Player
     extends BaseObject3D
 {
-    private float              velocity;
-    private static final float MAX_VELOCITY = 20f;
-    private Universe           universe;
-
-    private int                acceleration;
-    private boolean shoot;
-
-    private BaseObject3D       ship;
-    private PointLight pointLight;
-
-    private BaseObject3D bulletModel;
-
     private SpaceExplorationRenderer renderer;
+    private Universe                 universe;
 
-    private LinkedHashSet<Bullet> bullets;
+    private float                    velocity;
+    /**
+     * The maximum velocity of the player.
+     */
+    public static final float        MAX_VELOCITY = 6f;
 
+    private int                      acceleration;
+    private boolean                  shoot;
+
+    private BaseObject3D             ship;
+
+    private float                    health;
+    private float                    shipRoll;
+
+    private Set<Bullet>              bullets;
+
+    private Quaternion               temp;
+
+    private int                      enemiesKilled;
+    private boolean                  dead;
+
+
+    /**
+     * Instantiates a new Player.
+     *
+     * @param renderer
+     *            the SpaceExplorationRenderer object.
+     */
     public Player(SpaceExplorationRenderer renderer)
     {
         this.renderer = renderer;
         this.universe = renderer.getUniverse();
         bullets = new LinkedHashSet<Bullet>();
+        temp = new Quaternion();
+        health = 100;
     }
 
 
-    public float getVelocity()
+    /**
+     * Gets the magnitude of the Player's current Velocity.
+     *
+     * @return the magnitude of the velocity.
+     */
+    public float getSpeed()
     {
         return velocity;
     }
 
-    public void setBulletModel(BaseObject3D model) {
-        bulletModel = model;
+
+    /**
+     * Shoots a bullet.
+     */
+    public void shoot()
+    {
+        shoot = true;
+        /*
+         * The actual shooting is done on the render thread so that we don't get
+         * a ConcurrentModificationException by adding to the Set while we have
+         * an iterator.
+         */
     }
 
-    public void shoot() {
-        Log.d("Shoot", "shot a bullet");
-        Bullet b = new Bullet(bulletModel.clone(), this.getOrientation());
-        b.setPosition(getPosition());
-        renderer.addChild(b);
-        bullets.add(b);
-    }
 
+    /**
+     * Loads the ship model for the player.
+     *
+     * @param res
+     *            Resources from the Context.
+     * @param textureManager
+     *            the TextureManager from the Renderer
+     */
     public void loadShipModel(Resources res, TextureManager textureManager)
     {
         ObjParser objParser =
@@ -87,58 +125,175 @@ public class Player
         ship = objParser.getParsedObject();
         ship.setRotY(180);
         ship.setScale(0.25f);
-
         DiffuseMaterial mat = new DiffuseMaterial();
-        //mat.setAmbientColor(1, 1, 1, 1);
-        //mat.setAmbientIntensity(1f);
-
         ship.setMaterial(mat);
         ship.addTexture(new TextureInfo(R.drawable.player_ship));
-
         DirectionalLight light = new DirectionalLight(1, 0.2f, -1);
         light.setColor(1.0f, 1.0f, 1.0f);
         light.setPower(2);
         ship.addLight(light);
-        pointLight = new PointLight();
-        //
-        pointLight.setPower(20);
-        pointLight.setColor(0xffffff);
-        //ship.addLight(pointLight);
-        //this.addLight(pointLight);
-
         addChild(ship);
     }
 
 
+    /**
+     * Accelerates the player.
+     */
     public void accelerate()
     {
         acceleration++;
     }
 
 
+    /**
+     * Decelerates the player.
+     */
     public void decelerate()
     {
         acceleration--;
     }
 
 
-    public void update()
+    /**
+     * An update method for the Player that is called once per frame.
+     *
+     * @param dx
+     *            the change in the pitch rotation.
+     * @param dy
+     *            the change in the yaw rotation.
+     */
+    public void update(float dx, float dy)
     {
+        if (dead)
+        {
+            return;
+        }
+        if (health <= 0)
+        {
+            dead = true;
+            renderer.post(new Runnable() {
+                @Override
+                public void run()
+                {
+                    AlertDialog dialog =
+                        new AlertDialog.Builder(renderer.getContext())
+                            .setTitle("Beyond the Horizon")
+                            .setMessage("You died!").create();
+                    dialog.setOnDismissListener(new OnDismissListener() {
+                        @Override
+                        public void onDismiss(DialogInterface di)
+                        {
+                            renderer.finishActivity();
+                        }
+                    });
+                    dialog.show();
+                }
+            });
+        }
+        Quaternion q = this.getOrientation();
+        temp.fromEuler(dx, 0, dy);
+        temp.multiply(q);
+        this.setOrientation(temp);
+        shipRoll = (dx * 25.0f + shipRoll) / 2.0f;
+        ship.setRotZ(shipRoll);
+
         velocity =
-            Math.min(MAX_VELOCITY, Math.max(0, velocity + 0.4f * acceleration));
-        Log.d("velocity", "" + velocity);
+            Math.min(MAX_VELOCITY, Math.max(0, velocity + 0.1f * acceleration));
         Number3D dir = this.getOrientation().multiply(new Number3D(0, 0, -1));
         setPosition(getPosition().add(dir.multiply(velocity)));
-        universe.updatePlanets(getPosition());
-        //pointLight.setPosition(getPosition());
+        universe.updatePlanets(this);
+
+        if (shoot)
+        {
+            shoot = false;
+            Bullet b = new Bullet(dir, MAX_VELOCITY);
+            b.setPosition(getPosition());
+            renderer.addChild(b);
+            bullets.add(b);
+        }
+
         Iterator<Bullet> iter = bullets.iterator();
-        Bullet temp;
-        while (iter.hasNext()) {
-            if ((temp = iter.next()).update()) {
-                renderer.removeChild(temp);
+        Bullet bullet;
+        while (iter.hasNext())
+        {
+            if ((bullet = iter.next()).update())
+            {
+                renderer.removeChild(bullet);
                 iter.remove();
             }
         }
+        universe.updateEnemies(this);
     }
 
+
+    /**
+     * Gets the number of kills.
+     *
+     * @return the number of kills.
+     */
+    public int getKills()
+    {
+        return enemiesKilled;
+    }
+
+
+    /**
+     * Increments the number of enemies killed.
+     */
+    public void addKill()
+    {
+        enemiesKilled++;
+    }
+
+
+    /**
+     * Gets a collection of all the Bullet projectiles fired by the Player.
+     *
+     * @return the collection of projectiles.
+     */
+    public Set<Bullet> getBullets()
+    {
+        return bullets;
+    }
+
+
+    /**
+     * Checks if the Player collides with a Bullet.
+     *
+     * @param bullet
+     *            the Bullet.
+     * @return true if the Player collides with a Bullet.
+     */
+    public boolean checkCollision(Bullet bullet)
+    {
+        IBoundingVolume myBB = ship.getGeometry().getBoundingBox();
+        myBB.transform(this.getModelMatrix());
+        if (myBB.intersectsWith(bullet.getBoundingBox()))
+        {
+            health -= 5;
+            return true;
+        }
+        return false;
+    }
+
+
+    /**
+     * Checks if the Player collides with a Planet.
+     *
+     * @param p
+     *            the Planet.
+     * @return true if the Player collides with the Planet.
+     */
+    public boolean checkCollision(Planet p)
+    {
+        IBoundingVolume myBB = ship.getGeometry().getBoundingBox();
+        myBB.transform(this.getModelMatrix());
+        IBoundingVolume planetBV = p.getBoundingVolume();
+        if (myBB.intersectsWith(planetBV))
+        {
+            health -= 100;
+            return true;
+        }
+        return false;
+    }
 }

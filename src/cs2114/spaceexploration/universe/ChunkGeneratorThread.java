@@ -1,6 +1,6 @@
 package cs2114.spaceexploration.universe;
 
-// Class depends upon the Rajawali 3D library (stable v0.7).
+// Class depends upon the Rajawali 3D library (stable v0.9).
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 import rajawali.math.Number3D;
@@ -31,12 +31,25 @@ public class ChunkGeneratorThread
     private ConcurrentLinkedQueue<ChunkUpdate> chunksToGenerate;
 
 
+    /**
+     * Instantiate a new ChunkGeneratorThread.
+     */
     public ChunkGeneratorThread()
     {
         chunksToGenerate = new ConcurrentLinkedQueue<ChunkUpdate>();
     }
 
 
+    /**
+     * Generates a high-detail chunk of a planet.
+     *
+     * @param planet
+     *            the Planet.
+     * @param chunk
+     *            the location of the Chunk.
+     * @param lodLevel
+     *            the Level of Detail
+     */
     public void generateChunk(Planet planet, Number3D chunk, int lodLevel)
     {
         ChunkUpdate update = new ChunkUpdate();
@@ -47,6 +60,12 @@ public class ChunkGeneratorThread
     }
 
 
+    /**
+     * Generates a Planet preview.
+     *
+     * @param planet
+     *            the Planet.
+     */
     public void generatePlanetPreview(Planet planet)
     {
         ChunkUpdate update = new ChunkUpdate();

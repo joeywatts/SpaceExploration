@@ -1,31 +1,47 @@
 package cs2114.spaceexploration.universe;
 
-// Class depends upon the Rajawali 3D library (stable v0.7).
+// Class depends upon the Rajawali 3D library (stable v0.9).
 
-import java.util.Map;
-import java.util.Random;
-import java.util.concurrent.ConcurrentHashMap;
-import rajawali.BaseObject3D;
-import rajawali.lights.DirectionalLight;
-import rajawali.math.Number3D;
+import android.opengl.Matrix;
 import android.util.Log;
 import cs2114.spaceexploration.tessellation.ChunkTessellator;
 import cs2114.spaceexploration.tessellation.MarchingCubesChunkTessellator;
 import cs2114.spaceexploration.universe.generator.PlanetGenerator;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import rajawali.BaseObject3D;
+import rajawali.bounds.IBoundingVolume;
+import rajawali.lights.DirectionalLight;
+import rajawali.math.Number3D;
 
 // -------------------------------------------------------------------------
 /**
  * The Planet class defines a structure that stores all the relevant data
  * involved in generating, storing, and displaying a Planet, both logically and
- * graphically.
+ * graphically. This class includes a lot of code dedicated to generating highly
+ * detailed Planets that consist of multiple Chunks. However, in practice we
+ * found that in our given time frame, we could not optimize the game enough to
+ * make this feasible. We have left this code in because we plan to use it in
+ * the future, but in our submission, our code only uses a single "preview"
+ * chunk that was generated using samples of the data for the entire planet.
+ *
+ * @author jwatts96
+ * @author garnesen
+ * @author jam0704
+ * @version Nov 17, 2014
  */
 public class Planet
     extends BaseObject3D
 {
+    /**
+     * Maximum size of a generated planet.
+     */
     public static final int      MAX_PLANET_SIZE = 500;
+    /**
+     * Minimum size of a generated planet.
+     */
     public static final int      MIN_PLANET_SIZE = 200;
 
-    private Universe             universe;
     private PlanetGenerator      generator;
 
     private Number3D             center;
@@ -47,17 +63,14 @@ public class Planet
     /**
      * Instantiates a new Planet object.
      *
-     * @param universe
-     *            the universe that the planet is in.
      * @param center
      *            the center of the planet, relative to the "center" of the
      *            universe.
      * @param generator
      *            the object that generates the planet's terrain
      */
-    public Planet(Universe universe, Number3D center, PlanetGenerator generator)
+    public Planet(Number3D center, PlanetGenerator generator)
     {
-        this.universe = universe;
         this.setPosition(this.center = center);
         fullPlanetScale = 4.0f;
         setScale(fullPlanetScale);
@@ -110,6 +123,11 @@ public class Planet
     }
 
 
+    /**
+     * Gets a Map of all the Chunks for a more detailed planet.
+     *
+     * @return map of all the Chunks.
+     */
     public Map<Number3D, Chunk> getChunks()
     {
         return chunks;
@@ -168,7 +186,7 @@ public class Planet
                     generateChunk(new Number3D(
                         cx * Chunk.SIZE,
                         cy * Chunk.SIZE,
-                        cz * Chunk.SIZE), ChunkTessellator.LOD_LEVEL_HIGHEST);
+                        cz * Chunk.SIZE), 1);
                 }
             }
         }
@@ -206,5 +224,38 @@ public class Planet
             setScale(fullPlanetScale);
             setPosition(center.clone());
         }
+    }
+
+    private float[] tempMatrix = new float[16];
+
+
+    /**
+     * Checks if the planet has a geometry.
+     *
+     * @return true if the geometry for the Planet has been generated.
+     */
+    public boolean isGenerated()
+    {
+        return previewChunk != null;
+    }
+
+
+    /**
+     * Gets the bounding volume for this Planet for collision detection.
+     *
+     * @return the bounding volume.
+     */
+    public IBoundingVolume getBoundingVolume()
+    {
+        IBoundingVolume bv = previewChunk.getGeometry().getBoundingSphere();
+        Matrix.scaleM(
+            tempMatrix,
+            0,
+            fullPlanetScale,
+            fullPlanetScale,
+            fullPlanetScale);
+        Matrix.translateM(tempMatrix, 0, center.x, center.y, center.z);
+        bv.transform(tempMatrix);
+        return bv;
     }
 }

@@ -2,29 +2,41 @@ package cs2114.spaceexploration.universe;
 
 // Class depends upon the Rajawali 3D library (stable v0.7).
 
+import android.util.Log;
 import cs2114.spaceexploration.SpaceExplorationRenderer;
+import cs2114.spaceexploration.entity.Bullet;
+import cs2114.spaceexploration.entity.Enemy;
 import cs2114.spaceexploration.entity.Player;
 import cs2114.spaceexploration.universe.generator.Noise;
 import cs2114.spaceexploration.universe.generator.NoisePlanetGenerator;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import rajawali.math.Number3D;
-import android.util.Log;
 
 // -------------------------------------------------------------------------
 /**
  * The Universe class defines a structure that stores all the relevant data
  * involved in generating, storing, and displaying all of the Planets in the
  * game's universe, both logically and graphically.
+ *
+ * @author jwatts96
+ * @author garnesen
+ * @author jam0704
+ * @version Nov 17, 2014
  */
 public class Universe
 {
     /* Size of each cubic divsion of the universe */
     private static final int         UNIVERSE_DIVISION_SIZE = 4000;
     /* Padding on each sides of each cubic division of the universe */
-    private static final int         DIVISION_PADDING       = 800;
+    private static final int         DIVISION_PADDING       = 60;
 
     private static final int         PLANET_VIEW_DISTANCE   = 1;
+
+    private static final int         NUM_ENEMIES            = 25;
 
     private SpaceExplorationRenderer renderer;
     private Map<Number3D, Planet>    planets;
@@ -33,6 +45,8 @@ public class Universe
 
     private ChunkGeneratorThread     chunkGenerator;
     private UniverseUpdater          updater;
+
+    private Set<Enemy>               enemies;
 
 
     /**
@@ -48,6 +62,7 @@ public class Universe
         this.universeSeed = universeSeed;
         this.renderer = renderer;
         planets = new ConcurrentHashMap<Number3D, Planet>();
+        enemies = new LinkedHashSet<Enemy>();
         universeNoise = new Noise(universeSeed, 128.1245f);
     }
 
@@ -78,12 +93,9 @@ public class Universe
             (divZ + PLANET_VIEW_DISTANCE) * UNIVERSE_DIVISION_SIZE;
         for (Number3D key : planets.keySet())
         {
-            if (key.x < minPlanetDivX
-                || key.x > maxPlanetDivX
-                || key.y < minPlanetDivY
-                || key.y > maxPlanetDivY
-                || key.z < minPlanetDivZ
-                || key.z > maxPlanetDivZ)
+            if (key.x < minPlanetDivX || key.x > maxPlanetDivX
+                || key.y < minPlanetDivY || key.y > maxPlanetDivY
+                || key.z < minPlanetDivZ || key.z > maxPlanetDivZ)
             {
                 renderer.removeChild(planets.remove(key));
             }
@@ -113,15 +125,78 @@ public class Universe
      * planet's positions and scales so that they can be seen by the player even
      * if their real center is farther than the far plane.
      *
-     * @param playerLoc
-     *            the player's location.
+     * @param player
+     *            the player
      */
-    public void updatePlanets(Number3D playerLoc)
+    public void updatePlanets(Player player)
     {
+        Number3D playerLoc = player.getPosition();
         for (Planet planet : planets.values())
         {
             planet.update(playerLoc);
+            if (planet.isGenerated())
+            {
+                player.checkCollision(planet);
+            }
         }
+    }
+
+
+    /**
+     * A synchronous method that should be called every frame to update all the
+     * enemy's positions and scales so that they can be seen by the player even
+     * if their real center is farther than the far plane and check for
+     * collisions with Bullets.
+     *
+     * @param player
+     *            the Player.
+     */
+    public void updateEnemies(Player player)
+    {
+        Number3D playerPos = player.getPosition();
+        Iterator<Enemy> iter = enemies.iterator();
+        while (iter.hasNext())
+        {
+            Enemy e = iter.next();
+            if (e.update(player))
+            {
+                renderer.removeChild(e);
+                iter.remove();
+                continue;
+            }
+            Iterator<Bullet> bulletIter = player.getBullets().iterator();
+            while (bulletIter.hasNext())
+            {
+                Bullet bullet = bulletIter.next();
+                if (e.checkCollision(bullet))
+                {
+                    renderer.removeChild(bullet);
+                    bulletIter.remove();
+                    player.addKill();
+                }
+            }
+            for (Planet p : planets.values())
+            {
+                if (p.isGenerated())
+                {
+                    e.checkCollision(p);
+                }
+            }
+        }
+        while (enemies.size() < NUM_ENEMIES)
+        {
+            generateEnemy(playerPos);
+        }
+    }
+
+
+    private void generateEnemy(Number3D playerLoc)
+    {
+        float dx = 150f * (2 * (float)Math.random() - 1);
+        float dy = 150f * (2 * (float)Math.random() - 1);
+        float dz = 150f * (2 * (float)Math.random() - 1);
+        Number3D location = playerLoc.clone().add(dx, dy, dz);
+        addEnemy(location);
     }
 
 
@@ -187,7 +262,7 @@ public class Universe
         Number3D center = getPlanetLocation((int)key.x, (int)key.y, (int)key.z);
         Log.d("center", center.toString());
         Planet planet =
-            new Planet(this, center, new NoisePlanetGenerator(universeSeed * 31
+            new Planet(center, new NoisePlanetGenerator(universeSeed * 31
                 + center.hashCode()));
         /* Asynchronously generate a Chunk so the player can see the planet. */
         chunkGenerator.generatePlanetPreview(planet);
@@ -216,5 +291,22 @@ public class Universe
     public ChunkGeneratorThread getChunkGenerator()
     {
         return chunkGenerator;
+    }
+
+
+    /**
+     * Adds an enemy to the game.
+     *
+     * @param pos
+     *            the position of the enemy.
+     * @return the enemy
+     */
+    public Enemy addEnemy(Number3D pos)
+    {
+        Enemy e = new Enemy(renderer);
+        e.setPosition(pos);
+        enemies.add(e);
+        renderer.addChild(e);
+        return e;
     }
 }

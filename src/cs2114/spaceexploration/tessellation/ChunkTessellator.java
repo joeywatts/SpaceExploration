@@ -5,7 +5,9 @@ import cs2114.spaceexploration.universe.Chunk;
 // -------------------------------------------------------------------------
 /**
  * ChunkTessellator is an interface that abstracts the implementation of the
- * conversion of the scalar voxel field to polygons.
+ * conversion of the scalar voxel field to polygons. Due to the arbitrary nature
+ * of the functionality of the implementing classes, the implementing classes
+ * cannot be tested.
  *
  * @author jwatts96
  * @author garnesen
@@ -14,10 +16,6 @@ import cs2114.spaceexploration.universe.Chunk;
  */
 public interface ChunkTessellator
 {
-    public static final int LOD_LEVEL_HIGHEST = 1;
-    public static final int LOD_LEVEL_MEDIUM  = 4;
-    public static final int LOD_LEVEL_LOWEST  = 8;
-
 
     /**
      * Convert the Chunk data into the polygons.

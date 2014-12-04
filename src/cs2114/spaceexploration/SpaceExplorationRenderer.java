@@ -1,12 +1,16 @@
 package cs2114.spaceexploration;
 
-// Class depends upon the Rajawali 3D library (stable v0.7).
+// Class depends upon the Rajawali 3D library (stable v0.9).
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
 import android.widget.Button;
+import cs2114.spaceexploration.entity.Bullet;
+import cs2114.spaceexploration.entity.Enemy;
 import cs2114.spaceexploration.entity.Player;
 import cs2114.spaceexploration.universe.Universe;
 import cs2114.spaceexploration.view.AnalogStick;
@@ -15,8 +19,8 @@ import rajawali.BaseObject3D;
 import rajawali.ChaseCamera;
 import rajawali.lights.DirectionalLight;
 import rajawali.materials.DiffuseMaterial;
+import rajawali.materials.TextureInfo;
 import rajawali.math.Number3D;
-import rajawali.math.Quaternion;
 import rajawali.parser.AParser.ParsingException;
 import rajawali.parser.ObjParser;
 import rajawali.renderer.RajawaliRenderer;
@@ -26,7 +30,9 @@ import rajawali.renderer.RajawaliRenderer;
  * SpaceExplorationRenderer is a class that extends RajawaliRenderer and manages
  * the rendering and logic loops of the game.
  *
- * @author Joey
+ * @author jwatts96
+ * @author garnesen
+ * @author jam0704
  * @version Nov 28, 2014
  */
 public class SpaceExplorationRenderer
@@ -41,13 +47,8 @@ public class SpaceExplorationRenderer
     private Button           accelerate;
     private Button           brake;
 
-    private Quaternion       temp;
-    private float            pitch;
-    private float            yaw;
-
-    private BaseObject3D     bulletModel;
-
     private long             lastTime;
+    private Handler          handler;
 
 
     /**
@@ -60,6 +61,7 @@ public class SpaceExplorationRenderer
     {
         super(context);
         setFrameRate(60);
+        handler = new Handler();
     }
 
 
@@ -77,7 +79,8 @@ public class SpaceExplorationRenderer
         addChild(player);
         player.setPosition(0, 0, -15);
 
-        temp = new Quaternion();
+        loadEnemy();
+        universe.addEnemy(new Number3D(0, 0, -50));
 
         mCamera = new ChaseCamera(new Number3D(0, 0.75f, 4.0f), .1f, player);
 
@@ -138,6 +141,7 @@ public class SpaceExplorationRenderer
     {
         accelerate = accel;
         accelerate.setOnTouchListener(new OnTouchListener() {
+            @SuppressLint("ClickableViewAccessibility")
             @Override
             public boolean onTouch(View v, MotionEvent event)
             {
@@ -165,6 +169,7 @@ public class SpaceExplorationRenderer
     {
         this.brake = brake;
         this.brake.setOnTouchListener(new OnTouchListener() {
+            @SuppressLint("ClickableViewAccessibility")
             @Override
             public boolean onTouch(View v, MotionEvent event)
             {
@@ -195,15 +200,10 @@ public class SpaceExplorationRenderer
         }
         lastTime = time;
         float ratio = directionalAnalogStick.getRatio();
-        Quaternion q = player.getOrientation();
-        temp.fromEuler(
-            directionalAnalogStick.getNormalizedX() * ratio,
-            0,
-            directionalAnalogStick.getNormalizedY() * ratio);
-        temp.multiply(q);
-        player.setOrientation(temp);
 
-        player.update();
+        player.update(
+            directionalAnalogStick.getNormalizedX() * ratio,
+            directionalAnalogStick.getNormalizedY() * ratio);
     }
 
 
@@ -222,16 +222,61 @@ public class SpaceExplorationRenderer
         {
             e.printStackTrace();
         }
-        bulletModel = objParser.getParsedObject();
+        BaseObject3D bulletModel = objParser.getParsedObject();
         DiffuseMaterial mat = new DiffuseMaterial();
         mat.setUseColor(true);
         mat.setAmbientColor(0xff0000);
         mat.setAmbientIntensity(1);
         bulletModel.setMaterial(mat);
         bulletModel.setColor(0xff0000);
-//        bulletModel.addTexture(new TextureInfo(R.drawable.misslered));
-        bulletModel.setScale(0.5f);
+// bulletModel.addTexture(new TextureInfo(R.drawable.misslered));
+        bulletModel.setScale(0.15f);
         bulletModel.setRotX(90);
-        player.setBulletModel(bulletModel);
+        Bullet.setDefaultModel(bulletModel);
+    }
+
+
+    private void loadEnemy()
+    {
+        ObjParser objParser =
+            new ObjParser(
+                getContext().getResources(),
+                mTextureManager,
+                R.raw.ufo_obj);
+        try
+        {
+            objParser.parse();
+        }
+        catch (ParsingException e)
+        {
+            e.printStackTrace();
+        }
+        BaseObject3D enemyModel = objParser.getParsedObject();
+        enemyModel.setRotZ(0);
+        DiffuseMaterial mat = new DiffuseMaterial();
+        enemyModel.setMaterial(mat);
+        enemyModel.addTexture(new TextureInfo(R.drawable.ufo_texture));
+        Enemy.setDefaultModel(enemyModel);
+    }
+
+
+    /**
+     * Ends the game.
+     */
+    public void finishActivity()
+    {
+        ((SpaceExplorationActivity)getContext()).finish();
+    }
+
+
+    /**
+     * Posts a Runnable to the UI thread.
+     *
+     * @param r
+     *            the Runnable.
+     */
+    public void post(Runnable r)
+    {
+        handler.post(r);
     }
 }
