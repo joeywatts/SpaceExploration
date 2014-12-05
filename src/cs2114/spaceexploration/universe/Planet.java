@@ -2,7 +2,6 @@ package cs2114.spaceexploration.universe;
 
 // Class depends upon the Rajawali 3D library (stable v0.9).
 
-import android.opengl.Matrix;
 import android.util.Log;
 import cs2114.spaceexploration.tessellation.ChunkTessellator;
 import cs2114.spaceexploration.tessellation.MarchingCubesChunkTessellator;
@@ -10,7 +9,6 @@ import cs2114.spaceexploration.universe.generator.PlanetGenerator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import rajawali.BaseObject3D;
-import rajawali.bounds.BoundingSphere;
 import rajawali.bounds.IBoundingVolume;
 import rajawali.lights.DirectionalLight;
 import rajawali.math.Number3D;
@@ -60,6 +58,7 @@ public class Planet
      */
     private Chunk                previewChunk;
 
+
     /**
      * Instantiates a new Planet object.
      *
@@ -82,6 +81,28 @@ public class Planet
         light = new DirectionalLight(lightDir.x, lightDir.y, lightDir.z);
         light.setColor(1.0f, 1.0f, 1.0f);
         light.setPower(2);
+    }
+
+
+    /**
+     * Gets the center of the planet.
+     *
+     * @return the position of the planet's center.
+     */
+    public Number3D getCenter()
+    {
+        return center;
+    }
+
+
+    /**
+     * Gets the radius of the planet.
+     *
+     * @return the radius of the planet.
+     */
+    public float getRadius()
+    {
+        return generator.getPlanetSize() / 2 * fullPlanetScale;
     }
 
 
@@ -207,7 +228,7 @@ public class Planet
      */
     public void update(Number3D playerLoc)
     {
-        final float MAX_DIST = 300;
+        final float MAX_DIST = 450;
         float distance = playerLoc.distanceTo(center);
         if (distance > MAX_DIST)
         {

@@ -1,17 +1,13 @@
 package cs2114.spaceexploration.entity;
 
-import android.util.Log;
 import cs2114.spaceexploration.SpaceExplorationRenderer;
 import cs2114.spaceexploration.universe.Planet;
 import cs2114.spaceexploration.universe.Universe;
 import rajawali.BaseObject3D;
-import rajawali.Camera;
-import rajawali.bounds.BoundingBox;
 import rajawali.bounds.IBoundingVolume;
 import rajawali.lights.DirectionalLight;
 import rajawali.math.Number3D;
 import rajawali.math.Quaternion;
-import rajawali.util.ObjectColorPicker.ColorPickerInfo;
 
 // -------------------------------------------------------------------------
 /**
@@ -83,27 +79,12 @@ public class Enemy
         model.setRotZ(0);
         model.setRotX(0);
         model.addLight(light);
-        realScale = 0.25f;
+        realScale = 0.15f;
         fovHoriz = 45 * 3.14159f / 180.0f;
         addChild(model);
-
         velocity = 2;
     }
 
-
-    @Override
-    public void render(
-        Camera camera,
-        float[] projMatrix,
-        float[] vMatrix,
-        float[] parentMatrix,
-        ColorPickerInfo pickerInfo)
-    {
-        super.render(camera, projMatrix, vMatrix, parentMatrix, pickerInfo);
-        IBoundingVolume bb = model.getGeometry().getBoundingBox();
-        //bb.transform(model.getModelMatrix());
-        bb.drawBoundingVolume(camera, projMatrix, vMatrix, model.getModelMatrix());
-    }
 
     /**
      * Sets the real position of the Enemy.
@@ -154,7 +135,7 @@ public class Enemy
     private Bullet shoot()
     {
         Universe universe = renderer.getUniverse();
-        Bullet b = universe.shootBullet(this, moveDirection, -5);
+        Bullet b = universe.shootBullet(this, moveDirection, 0);
         b.setPosition(getPosition().clone());
         b.setOrientation(getOrientation());
         return b;
@@ -186,10 +167,9 @@ public class Enemy
                 new Number3D(),
                 moveDirection));
             realPosition.add(moveDirection.clone().multiply(velocity * .32f));
-        } else if (dot > .9f
-            && tickSinceLastShot > RELOAD_TIME
-            && Math.abs(angle) < fovHoriz
-            && distance < MAX_SHOOTING_DISTANCE)
+        }
+        else if (dot > .9f && tickSinceLastShot > RELOAD_TIME
+            && Math.abs(angle) < fovHoriz && distance < MAX_SHOOTING_DISTANCE)
         {
             shoot();
             tickSinceLastShot = 0;
@@ -215,13 +195,6 @@ public class Enemy
         return (float)Math.tan((v2.x - v1.x) / (v2.z - v1.z));
     }
 
-    private IBoundingVolume getBoundingBox() {
-        Number3D extent = new Number3D(5,2,5);
-        BoundingBox box = new BoundingBox();
-        box.setMin(extent.clone().multiply(-1));
-        box.setMax(extent);
-        return box;
-    }
 
     /**
      * Checks if this Enemy collides with a Bullet.
@@ -235,7 +208,6 @@ public class Enemy
         IBoundingVolume enemyBB = model.getGeometry().getBoundingBox();
         enemyBB.transform(model.getModelMatrix());
         IBoundingVolume bulletBB = b.getBoundingBox();
-        Log.d("Enemy", enemyBB.toString() + " Bullet: " + bulletBB.toString());
         if (enemyBB.intersectsWith(bulletBB))
         {
             b.explode();
@@ -255,10 +227,7 @@ public class Enemy
      */
     public boolean checkCollision(Planet p)
     {
-        IBoundingVolume myBB = model.getGeometry().getBoundingBox();
-        myBB.transform(model.getModelMatrix());
-        IBoundingVolume planetBV = p.getBoundingVolume();
-        if (myBB.intersectsWith(planetBV))
+        if (p.getCenter().distanceTo(getRealPosition()) < p.getRadius())
         {
             health -= 100;
             return true;

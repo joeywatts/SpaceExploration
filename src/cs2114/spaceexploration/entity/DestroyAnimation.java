@@ -33,7 +33,6 @@ public class DestroyAnimation extends BaseObject3D
     // ----------------------------------------------------------
     /**
      * Create a new DestroyAnimation object.
-     * @param center the location of the animation start
      */
     public DestroyAnimation()
     {

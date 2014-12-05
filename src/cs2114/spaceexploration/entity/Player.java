@@ -6,10 +6,10 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnDismissListener;
 import android.content.res.Resources;
+import android.util.Log;
 import cs2114.spaceexploration.R;
 import cs2114.spaceexploration.SpaceExplorationRenderer;
 import cs2114.spaceexploration.universe.Planet;
-import cs2114.spaceexploration.universe.Universe;
 import rajawali.BaseObject3D;
 import rajawali.bounds.IBoundingVolume;
 import rajawali.lights.DirectionalLight;
@@ -117,7 +117,7 @@ public class Player
         }
         ship = objParser.getParsedObject();
         ship.setRotY(180);
-        ship.setScale(0.25f);
+        ship.setScale(0.15f);
         DiffuseMaterial mat = new DiffuseMaterial();
         ship.setMaterial(mat);
         ship.addTexture(new TextureInfo(R.drawable.player_ship));
@@ -263,11 +263,11 @@ public class Player
      */
     public boolean checkCollision(Planet p)
     {
-        IBoundingVolume myBB = ship.getGeometry().getBoundingBox();
-        myBB.transform(ship.getModelMatrix());
-        IBoundingVolume planetBV = p.getBoundingVolume();
-        if (myBB.intersectsWith(planetBV))
+        float dist = getPosition().distanceTo(p.getCenter());
+        Log.d("Planet Distance", dist + "");
+        if (dist < p.getRadius())
         {
+            Log.d("Planet", "Player collided with planet.");
             health -= 100;
             return true;
         }

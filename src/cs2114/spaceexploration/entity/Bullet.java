@@ -1,9 +1,6 @@
 package cs2114.spaceexploration.entity;
 
-import rajawali.Camera;
-import rajawali.util.ObjectColorPicker.ColorPickerInfo;
 import rajawali.BaseObject3D;
-import rajawali.bounds.BoundingBox;
 import rajawali.bounds.IBoundingVolume;
 import rajawali.lights.DirectionalLight;
 import rajawali.math.Number3D;
@@ -20,7 +17,7 @@ import rajawali.math.Number3D;
 public class Bullet
     extends BaseObject3D
 {
-    private static final float  BULLET_VELOCITY = 20f;
+    private static final float  BULLET_VELOCITY = 5f;
     private static final float  MAX_DISTANCE    = 1000f;
 
     private float               velocity;
@@ -65,7 +62,8 @@ public class Bullet
         addChild(model = defaultModel.clone());
         direction = dir;
         direction.normalize();
-        setLookAt(direction);
+        setRotX((float) Math.tan(dir.x/dir.z));
+        setRotY((float) Math.tan(dir.x/dir.y));
         DirectionalLight light = new DirectionalLight(1, 0.2f, -1);
         light.setColor(1.0f, 1.0f, 1.0f);
         light.setPower(2);
@@ -73,18 +71,6 @@ public class Bullet
         velocity = startVelocity + BULLET_VELOCITY;
     }
 
-
-    @Override
-    public void render(
-        Camera camera,
-        float[] projMatrix,
-        float[] vMatrix,
-        float[] parentMatrix,
-        ColorPickerInfo pickerInfo)
-    {
-        super.render(camera, projMatrix, vMatrix, parentMatrix, pickerInfo);
-        getBoundingBox().drawBoundingVolume(camera, projMatrix, vMatrix, model.getModelMatrix());
-    }
 
     /**
      * Updates the bullet position.
@@ -112,8 +98,6 @@ public class Bullet
         distanceTraveled = MAX_DISTANCE;
     }
 
-
-    private BoundingBox myBB;
 
     /**
      * Gets a bounding box for the Bullet.

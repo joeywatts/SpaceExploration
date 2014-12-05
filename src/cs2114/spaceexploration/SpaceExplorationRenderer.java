@@ -84,12 +84,11 @@ public class SpaceExplorationRenderer
         universe = new Universe(0, this);
 
         loadEnemy();
-        universe.addEnemy(new Number3D(0, 0, -50));
+        //universe.addEnemy(new Number3D(0, 0, -50));
 
         mCamera = new ChaseCamera(new Number3D(0, 0.75f, 4.0f), .1f, player);
 
         universe.startUpdater();
-        mCamera.setFarPlane(10000f);
         // mCamera.setZ(1024f);
         setSkybox(
             R.drawable.pos_z,
@@ -99,6 +98,8 @@ public class SpaceExplorationRenderer
             R.drawable.pos_y,
             R.drawable.neg_y);
 // setSkybox(R.drawable.skybox);
+        mCamera.setFarPlane(2000f);
+        mCamera.setNearPlane(1f);
     }
 
 
@@ -246,10 +247,9 @@ public class SpaceExplorationRenderer
         DiffuseMaterial mat = new DiffuseMaterial();
         mat.setUseColor(true);
         mat.setAmbientColor(0xff0000);
-        mat.setAmbientIntensity(1);
+        mat.setAmbientIntensity(0.75f);
         bulletModel.setMaterial(mat);
         bulletModel.setColor(0xff0000);
-// bulletModel.addTexture(new TextureInfo(R.drawable.misslered));
         bulletModel.setScale(0.15f);
         bulletModel.setRotX(90);
         Bullet.setDefaultModel(bulletModel);
