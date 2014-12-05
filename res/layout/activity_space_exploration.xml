@@ -14,41 +14,52 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true" />
-    
+
+    <ProgressBar
+        android:id="@+id/healthBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        style="@android:style/Widget.ProgressBar.Horizontal" />
+
     <cs2114.spaceexploration.view.AnalogStick
         android:id="@+id/leftAnalogStick"
         android:layout_width="125dp"
         android:layout_height="125dp"
-        android:layout_margin="25dp"
+        android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentBottom="true" />
-    
-    <!--  <cs2114.spaceexploration.view.AnalogStick
+        android:layout_margin="25dp" />
+
+    <!--
+          <cs2114.spaceexploration.view.AnalogStick
         android:id="@+id/rightAnalogStick"
         android:layout_width="125dp"
         android:layout_height="125dp"
         android:layout_margin="25dp"
         android:layout_alignParentRight="true"
-        android:layout_alignParentBottom="true" /> -->
-        
-        <Button android:id="@+id/accelerate"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="@drawable/accelerate_button"
-            android:text="^"
-            android:textColor="#ffffff"
-            android:layout_alignParentRight="true"
-            android:layout_alignTop="@id/leftAnalogStick"
-            android:layout_marginRight="25dp" />
+        android:layout_alignParentBottom="true" />
+    -->
 
-        <Button android:id="@+id/brake"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginRight="25dp"
-            android:layout_alignBottom="@id/leftAnalogStick"
-            android:layout_alignParentRight="true"
-            android:text="v"
-            android:textColor="#ffffff"
-            android:background="@drawable/brake_button" />
-        
+    <Button
+        android:id="@+id/accelerate"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignTop="@id/leftAnalogStick"
+        android:layout_marginRight="25dp"
+        android:background="@drawable/accelerate_button"
+        android:text="^"
+        android:textColor="#ffffff" />
+
+    <Button
+        android:id="@+id/brake"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_alignBottom="@id/leftAnalogStick"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="25dp"
+        android:background="@drawable/brake_button"
+        android:text="v"
+        android:textColor="#ffffff" />
+
 </RelativeLayout>

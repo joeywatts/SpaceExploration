@@ -2,19 +2,21 @@ package cs2114.spaceexploration;
 
 // Class depends upon the Rajawali 3D library (stable v0.9).
 
-import javax.microedition.khronos.egl.EGLConfig;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Handler;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import cs2114.spaceexploration.entity.Bullet;
 import cs2114.spaceexploration.entity.Enemy;
 import cs2114.spaceexploration.entity.Player;
 import cs2114.spaceexploration.universe.Universe;
 import cs2114.spaceexploration.view.AnalogStick;
+import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 import rajawali.BaseObject3D;
 import rajawali.ChaseCamera;
@@ -47,6 +49,7 @@ public class SpaceExplorationRenderer
     private AnalogStick      directionalAnalogStick;
     private Button           accelerate;
     private Button           brake;
+    private ProgressBar      healthBar;
 
     private long             lastTime;
     private Handler          handler;
@@ -89,12 +92,13 @@ public class SpaceExplorationRenderer
         mCamera.setFarPlane(10000f);
         // mCamera.setZ(1024f);
         setSkybox(
-            R.drawable.star_skybox,
-            R.drawable.star_skybox,
-            R.drawable.star_skybox,
-            R.drawable.star_skybox,
-            R.drawable.star_skybox,
-            R.drawable.star_skybox);
+            R.drawable.pos_z,
+            R.drawable.pos_x,
+            R.drawable.neg_z,
+            R.drawable.neg_x,
+            R.drawable.pos_y,
+            R.drawable.neg_y);
+// setSkybox(R.drawable.skybox);
     }
 
 
@@ -129,6 +133,18 @@ public class SpaceExplorationRenderer
     public void setAnalogStick(AnalogStick analog)
     {
         directionalAnalogStick = analog;
+    }
+
+
+    /**
+     * Sets the ProgressBar to use for the Health bar.
+     *
+     * @param bar
+     *            the ProgressBar
+     */
+    public void setHealthBar(ProgressBar bar)
+    {
+        healthBar = bar;
     }
 
 
@@ -207,6 +223,7 @@ public class SpaceExplorationRenderer
         universe.updateBullets();
         universe.updateEnemies();
         universe.updatePlanets();
+        healthBar.setProgress((int)player.getHealth());
     }
 
 
@@ -283,21 +300,4 @@ public class SpaceExplorationRenderer
         handler.post(r);
     }
 
-    @Override
-    public void onSurfaceCreated(GL10 gl, EGLConfig config)
-    {
-        super.onSurfaceCreated(gl, config);
-        if (universe != null) {
-            universe.startUpdater();
-        }
-    }
-
-    @Override
-    public void onSurfaceDestroyed()
-    {
-        super.onSurfaceDestroyed();
-        if (universe != null) {
-            universe.stopUpdater();
-        }
-    }
 }

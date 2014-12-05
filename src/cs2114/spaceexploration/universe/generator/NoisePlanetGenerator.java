@@ -224,9 +224,9 @@ public class NoisePlanetGenerator
      */
     public float calculateTemperature(int x, int y, int z)
     {
-        return tempNoise.getNoiseValue(
+        return (float) Math.cos(tempNoise.getNoiseValue(
             x * 10.2345667f,
             y * 50.456543f,
-            z * 20.46731f)/0.65f;
+            z * 20.46731f) * 1234.0f) * 0.5f + 0.5f;
     }
 }

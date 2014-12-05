@@ -225,8 +225,8 @@ public class Universe
                     if (actor != bullet.getShooter()
                         && actor.checkCollision(bullet))
                     {
-                        iter.remove();
-                        renderer.removeChild(bullet);
+                        bullet.destroy();
+                        break;
                     }
                 }
             }
@@ -276,10 +276,14 @@ public class Universe
      */
     public void startUpdater()
     {
-        updater = new UniverseUpdater(this);
-        updater.start();
+        if (updater != null && chunkGenerator != null) {
+            return;
+        }
+
         chunkGenerator = new ChunkGeneratorThread();
         chunkGenerator.start();
+        updater = new UniverseUpdater(this);
+        updater.start();
     }
 
 
@@ -348,7 +352,7 @@ public class Universe
     public Enemy addEnemy(Number3D pos)
     {
         Enemy e = new Enemy(renderer);
-        e.setPosition(pos);
+        e.setRealPosition(pos);
         actors.add(e);
         renderer.addChild(e);
         return e;

@@ -198,12 +198,18 @@ public class Player
         if (shoot)
         {
             shoot = false;
-            renderer
-                .getUniverse()
-                .shootBullet(
+            Number3D bulletDir =
+                this.getOrientation().multiply(new Number3D(0, 0, -1));
+            Bullet bullet =
+                renderer.getUniverse().shootBullet(
                     this,
-                    this.getOrientation().multiply(new Number3D(0, 0, -1)),
-                    MAX_VELOCITY).setPosition(getPosition().clone());
+                    bulletDir,
+                    MAX_VELOCITY);
+            bullet.setPosition(getPosition().clone());
+            bullet.setOrientation(Quaternion.getRotationTo(new Number3D(
+                0,
+                0,
+                -1), bulletDir));
         }
     }
 
@@ -238,7 +244,7 @@ public class Player
     public boolean checkCollision(Bullet bullet)
     {
         IBoundingVolume myBB = ship.getGeometry().getBoundingBox();
-        myBB.transform(this.getModelMatrix());
+        myBB.transform(ship.getModelMatrix());
         if (myBB.intersectsWith(bullet.getBoundingBox()))
         {
             health -= 5;
@@ -258,7 +264,7 @@ public class Player
     public boolean checkCollision(Planet p)
     {
         IBoundingVolume myBB = ship.getGeometry().getBoundingBox();
-        myBB.transform(this.getModelMatrix());
+        myBB.transform(ship.getModelMatrix());
         IBoundingVolume planetBV = p.getBoundingVolume();
         if (myBB.intersectsWith(planetBV))
         {
@@ -266,5 +272,16 @@ public class Player
             return true;
         }
         return false;
+    }
+
+
+    /**
+     * Gets the Player's health.
+     *
+     * @return the Player's health.
+     */
+    public float getHealth()
+    {
+        return health;
     }
 }

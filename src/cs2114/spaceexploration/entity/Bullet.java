@@ -1,6 +1,9 @@
 package cs2114.spaceexploration.entity;
 
+import rajawali.Camera;
+import rajawali.util.ObjectColorPicker.ColorPickerInfo;
 import rajawali.BaseObject3D;
+import rajawali.bounds.BoundingBox;
 import rajawali.bounds.IBoundingVolume;
 import rajawali.lights.DirectionalLight;
 import rajawali.math.Number3D;
@@ -27,7 +30,11 @@ public class Bullet
 
     private Actor               shooter;
 
+    private DestroyAnimation    animation;
+    private boolean             exploding;
+
     private static BaseObject3D defaultModel;
+    private BaseObject3D        model;
 
 
     /**
@@ -55,7 +62,7 @@ public class Bullet
     public Bullet(Actor actor, Number3D dir, float startVelocity)
     {
         shooter = actor;
-        addChild(defaultModel.clone());
+        addChild(model = defaultModel.clone());
         direction = dir;
         direction.normalize();
         setLookAt(direction);
@@ -67,6 +74,18 @@ public class Bullet
     }
 
 
+    @Override
+    public void render(
+        Camera camera,
+        float[] projMatrix,
+        float[] vMatrix,
+        float[] parentMatrix,
+        ColorPickerInfo pickerInfo)
+    {
+        super.render(camera, projMatrix, vMatrix, parentMatrix, pickerInfo);
+        getBoundingBox().drawBoundingVolume(camera, projMatrix, vMatrix, model.getModelMatrix());
+    }
+
     /**
      * Updates the bullet position.
      *
@@ -74,6 +93,10 @@ public class Bullet
      */
     public boolean update()
     {
+        if (exploding)
+        {
+            return !animation.update();
+        }
         setPosition(getPosition().add(
             direction.clone().multiply(velocity * .32f)));
         distanceTraveled += velocity * .32f;
@@ -90,6 +113,8 @@ public class Bullet
     }
 
 
+    private BoundingBox myBB;
+
     /**
      * Gets a bounding box for the Bullet.
      *
@@ -97,9 +122,9 @@ public class Bullet
      */
     public IBoundingVolume getBoundingBox()
     {
-        IBoundingVolume myBB = defaultModel.getGeometry().getBoundingBox();
-        myBB.transform(this.getModelMatrix());
-        return myBB;
+        IBoundingVolume bulletBB = model.getGeometry().getBoundingBox();
+        bulletBB.transform(model.getModelMatrix());
+        return bulletBB;
     }
 
 
@@ -111,5 +136,21 @@ public class Bullet
     public Actor getShooter()
     {
         return shooter;
+    }
+
+
+    /**
+     * Explodes the bullet.
+     */
+    public void explode()
+    {
+        if (!exploding)
+        {
+            removeChild(model);
+            exploding = true;
+            animation = new DestroyAnimation();
+            animation.setScale(0.25f);
+            addChild(animation);
+        }
     }
 }

@@ -10,6 +10,7 @@ import cs2114.spaceexploration.universe.generator.PlanetGenerator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import rajawali.BaseObject3D;
+import rajawali.bounds.BoundingSphere;
 import rajawali.bounds.IBoundingVolume;
 import rajawali.lights.DirectionalLight;
 import rajawali.math.Number3D;
@@ -59,7 +60,6 @@ public class Planet
      */
     private Chunk                previewChunk;
 
-
     /**
      * Instantiates a new Planet object.
      *
@@ -72,7 +72,7 @@ public class Planet
     public Planet(Number3D center, PlanetGenerator generator)
     {
         this.setPosition(this.center = center);
-        fullPlanetScale = 4.0f;
+        fullPlanetScale = 8.0f;
         setScale(fullPlanetScale);
         this.generator = generator;
         chunks = new ConcurrentHashMap<Number3D, Chunk>();
@@ -226,8 +226,6 @@ public class Planet
         }
     }
 
-    private float[] tempMatrix = new float[16];
-
 
     /**
      * Checks if the planet has a geometry.
@@ -248,14 +246,7 @@ public class Planet
     public IBoundingVolume getBoundingVolume()
     {
         IBoundingVolume bv = previewChunk.getGeometry().getBoundingSphere();
-        Matrix.scaleM(
-            tempMatrix,
-            0,
-            fullPlanetScale,
-            fullPlanetScale,
-            fullPlanetScale);
-        Matrix.translateM(tempMatrix, 0, center.x, center.y, center.z);
-        bv.transform(tempMatrix);
+        bv.transform(previewChunk.getModelMatrix());
         return bv;
     }
 }

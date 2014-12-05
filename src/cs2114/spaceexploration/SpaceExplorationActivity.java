@@ -2,13 +2,16 @@ package cs2114.spaceexploration;
 
 // Class depends upon the Rajawali 3D library (stable v0.9).
 
-import rajawali.RajawaliActivity;
 import android.annotation.SuppressLint;
+import android.graphics.Color;
+import android.graphics.PorterDuff.Mode;
 import android.os.Bundle;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import cs2114.spaceexploration.view.AnalogStick;
+import rajawali.RajawaliActivity;
 
 // -------------------------------------------------------------------------
 /**
@@ -33,6 +36,7 @@ public class SpaceExplorationActivity
     private AnalogStick              leftAnalogStick;
     private Button                   accelerateButton;
     private Button                   brakeButton;
+    private ProgressBar              healthBar;
 
 
     @SuppressLint("InflateParams")
@@ -51,6 +55,10 @@ public class SpaceExplorationActivity
                 (AnalogStick)layout.findViewById(R.id.leftAnalogStick);
             accelerateButton = (Button)layout.findViewById(R.id.accelerate);
             brakeButton = (Button)layout.findViewById(R.id.brake);
+            healthBar = (ProgressBar)layout.findViewById(R.id.healthBar);
+            healthBar.getProgressDrawable().setColorFilter(
+                Color.RED,
+                Mode.MULTIPLY);
             mLayout.addView(layout);
         }
         if (mRenderer == null)
@@ -61,6 +69,7 @@ public class SpaceExplorationActivity
         mRenderer.setAccelerateButton(accelerateButton);
         mRenderer.setBrakeButton(brakeButton);
         mRenderer.setSurfaceView(mSurfaceView);
+        mRenderer.setHealthBar(healthBar);
         super.setRenderer(mRenderer);
     }
 
