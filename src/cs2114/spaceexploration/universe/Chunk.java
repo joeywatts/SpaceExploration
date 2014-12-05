@@ -177,8 +177,8 @@ public class Chunk
             tessellator.getIndices());
         DiffuseMaterial mat = new DiffuseMaterial();
         mat.setUseColor(true);
-        mat.setAmbientColor(1, 1, 1, 1);
-        mat.setAmbientIntensity(0.5f);
+        //mat.setAmbientColor(1, 1, 1, 1);
+        //mat.setAmbientIntensity(0.5f);
         setMaterial(mat);
         setDoubleSided(true);
         return true;

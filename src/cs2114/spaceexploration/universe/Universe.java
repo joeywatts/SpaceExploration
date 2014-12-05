@@ -4,6 +4,7 @@ package cs2114.spaceexploration.universe;
 
 import android.util.Log;
 import cs2114.spaceexploration.SpaceExplorationRenderer;
+import cs2114.spaceexploration.entity.Actor;
 import cs2114.spaceexploration.entity.Bullet;
 import cs2114.spaceexploration.entity.Enemy;
 import cs2114.spaceexploration.entity.Player;
@@ -46,7 +47,8 @@ public class Universe
     private ChunkGeneratorThread     chunkGenerator;
     private UniverseUpdater          updater;
 
-    private Set<Enemy>               enemies;
+    private Set<Actor>               actors;
+    private Set<Bullet>              bullets;
 
 
     /**
@@ -62,7 +64,9 @@ public class Universe
         this.universeSeed = universeSeed;
         this.renderer = renderer;
         planets = new ConcurrentHashMap<Number3D, Planet>();
-        enemies = new LinkedHashSet<Enemy>();
+        bullets = new LinkedHashSet<Bullet>();
+        actors = new LinkedHashSet<Actor>();
+        actors.add(renderer.getPlayer());
         universeNoise = new Noise(universeSeed, 128.1245f);
     }
 
@@ -70,12 +74,10 @@ public class Universe
     /**
      * A synchronous update method for the Universe. Generates and removes
      * planets based on the Player's location. Called on a background thread.
-     *
-     * @param player
-     *            the Player
      */
-    public void update(Player player)
+    public void update()
     {
+        Player player = renderer.getPlayer();
         int divX = Math.round(player.getPosition().x / UNIVERSE_DIVISION_SIZE);
         int divY = Math.round(player.getPosition().y / UNIVERSE_DIVISION_SIZE);
         int divZ = Math.round(player.getPosition().z / UNIVERSE_DIVISION_SIZE);
@@ -124,21 +126,24 @@ public class Universe
      * A synchronous method that should be called every frame to update all the
      * planet's positions and scales so that they can be seen by the player even
      * if their real center is farther than the far plane.
-     *
-     * @param player
-     *            the player
      */
-    public void updatePlanets(Player player)
+    public void updatePlanets()
     {
-        Number3D playerLoc = player.getPosition();
+        Player player = renderer.getPlayer();
+        Number3D playerLoc = player.getPosition().clone();
         for (Planet planet : planets.values())
         {
+            playerLoc.setAllFrom(player.getPosition());
             planet.update(playerLoc);
             if (planet.isGenerated())
             {
-                player.checkCollision(planet);
+                for (Actor actor : actors)
+                {
+                    actor.checkCollision(planet);
+                }
             }
         }
+
     }
 
 
@@ -147,45 +152,84 @@ public class Universe
      * enemy's positions and scales so that they can be seen by the player even
      * if their real center is farther than the far plane and check for
      * collisions with Bullets.
-     *
-     * @param player
-     *            the Player.
      */
-    public void updateEnemies(Player player)
+    public void updateEnemies()
     {
-        Number3D playerPos = player.getPosition();
-        Iterator<Enemy> iter = enemies.iterator();
+        Player player = renderer.getPlayer();
+        Number3D playerPos = player.getPosition().clone();
+        Iterator<Actor> iter = actors.iterator();
         while (iter.hasNext())
         {
-            Enemy e = iter.next();
-            if (e.update(player))
+            Actor actor = iter.next();
+            if (!(actor instanceof Enemy))
+            {
+                continue;
+            }
+            Enemy e = (Enemy)actor;
+            if (e.update())
             {
                 renderer.removeChild(e);
                 iter.remove();
                 continue;
             }
-            Iterator<Bullet> bulletIter = player.getBullets().iterator();
-            while (bulletIter.hasNext())
-            {
-                Bullet bullet = bulletIter.next();
-                if (e.checkCollision(bullet))
-                {
-                    renderer.removeChild(bullet);
-                    bulletIter.remove();
-                    player.addKill();
-                }
-            }
-            for (Planet p : planets.values())
-            {
-                if (p.isGenerated())
-                {
-                    e.checkCollision(p);
-                }
-            }
         }
-        while (enemies.size() < NUM_ENEMIES)
+        while (actors.size() - 1 < NUM_ENEMIES)
         {
+            playerPos.setAllFrom(player.getPosition());
             generateEnemy(playerPos);
+        }
+    }
+
+
+    /**
+     * Shoots a bullet.
+     *
+     * @param actor
+     *            the Shooter of the bullet.
+     * @param direction
+     *            the direction for the bullet to travel.
+     * @param referenceVelocity
+     *            the reference velocity of the bullet.
+     * @return the Bullet
+     */
+    public Bullet shootBullet(
+        Actor actor,
+        Number3D direction,
+        float referenceVelocity)
+    {
+        Bullet b = new Bullet(actor, direction, referenceVelocity);
+        bullets.add(b);
+        renderer.addChild(b);
+        return b;
+    }
+
+    /**
+     * A synchronous method that should be called every frame to update all the
+     * Bullet projectiles.
+     */
+    public void updateBullets()
+    {
+        Iterator<Bullet> iter = bullets.iterator();
+        while (iter.hasNext())
+        {
+            Bullet bullet = iter.next();
+            if (bullet.update())
+            {
+                iter.remove();
+                renderer.removeChild(bullet);
+            }
+            else
+            {
+                for (Actor actor : actors)
+                {
+                    if (actor != bullet.getShooter()
+                        && actor.checkCollision(bullet))
+                    {
+                        iter.remove();
+                        renderer.removeChild(bullet);
+                    }
+                }
+            }
         }
     }
 
@@ -232,7 +276,7 @@ public class Universe
      */
     public void startUpdater()
     {
-        updater = new UniverseUpdater(this, renderer.getPlayer());
+        updater = new UniverseUpdater(this);
         updater.start();
         chunkGenerator = new ChunkGeneratorThread();
         chunkGenerator.start();
@@ -305,7 +349,7 @@ public class Universe
     {
         Enemy e = new Enemy(renderer);
         e.setPosition(pos);
-        enemies.add(e);
+        actors.add(e);
         renderer.addChild(e);
         return e;
     }

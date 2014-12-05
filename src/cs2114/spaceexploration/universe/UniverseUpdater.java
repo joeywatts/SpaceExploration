@@ -2,8 +2,6 @@ package cs2114.spaceexploration.universe;
 
 // Class depends upon the Rajawali 3D library (stable v0.9).
 
-import cs2114.spaceexploration.entity.Player;
-
 // -------------------------------------------------------------------------
 /**
  * UniverseUpdater is a background thread for updating the Universe.
@@ -18,7 +16,6 @@ public class UniverseUpdater
 {
 
     private Universe universe;
-    private Player   player;
 
 
     /**
@@ -26,13 +23,10 @@ public class UniverseUpdater
      *
      * @param universe
      *            the Universe.
-     * @param player
-     *            the Player
      */
-    public UniverseUpdater(Universe universe, Player player)
+    public UniverseUpdater(Universe universe)
     {
         this.universe = universe;
-        this.player = player;
     }
 
 
@@ -40,7 +34,7 @@ public class UniverseUpdater
     {
         while (!this.isInterrupted())
         {
-            universe.update(player);
+            universe.update();
             try
             {
                 Thread.sleep(200);

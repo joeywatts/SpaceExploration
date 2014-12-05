@@ -25,6 +25,8 @@ public class Bullet
     private float               distanceTraveled;
     private Number3D            direction;
 
+    private Actor               shooter;
+
     private static BaseObject3D defaultModel;
 
 
@@ -43,13 +45,16 @@ public class Bullet
     /**
      * Instantiates a new Bullet.
      *
+     * @param actor
+     *            the Actor that shot the bullet.
      * @param dir
      *            the direction for the bullet.
      * @param startVelocity
      *            the velocity for the bullet to start at.
      */
-    public Bullet(Number3D dir, float startVelocity)
+    public Bullet(Actor actor, Number3D dir, float startVelocity)
     {
+        shooter = actor;
         addChild(defaultModel.clone());
         direction = dir;
         direction.normalize();
@@ -95,5 +100,16 @@ public class Bullet
         IBoundingVolume myBB = defaultModel.getGeometry().getBoundingBox();
         myBB.transform(this.getModelMatrix());
         return myBB;
+    }
+
+
+    /**
+     * Gets the shooter of the Bullet.
+     *
+     * @return the shooter of the Bullet.
+     */
+    public Actor getShooter()
+    {
+        return shooter;
     }
 }

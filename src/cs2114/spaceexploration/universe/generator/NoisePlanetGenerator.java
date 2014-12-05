@@ -225,8 +225,8 @@ public class NoisePlanetGenerator
     public float calculateTemperature(int x, int y, int z)
     {
         return tempNoise.getNoiseValue(
-            x * 1.2345667f,
-            y * 0.456543f,
-            z * 0.46731f);
+            x * 10.2345667f,
+            y * 50.456543f,
+            z * 20.46731f)/0.65f;
     }
 }

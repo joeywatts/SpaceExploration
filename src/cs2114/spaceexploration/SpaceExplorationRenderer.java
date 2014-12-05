@@ -2,6 +2,7 @@ package cs2114.spaceexploration;
 
 // Class depends upon the Rajawali 3D library (stable v0.9).
 
+import javax.microedition.khronos.egl.EGLConfig;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Handler;
@@ -72,12 +73,12 @@ public class SpaceExplorationRenderer
         mLight.setColor(1.0f, 1.0f, 1.0f);
         mLight.setPower(2);
 
-        universe = new Universe(0, this);
         player = new Player(this);
         player.loadShipModel(mContext.getResources(), mTextureManager);
         loadBullet();
         addChild(player);
         player.setPosition(0, 0, -15);
+        universe = new Universe(0, this);
 
         loadEnemy();
         universe.addEnemy(new Number3D(0, 0, -50));
@@ -200,10 +201,12 @@ public class SpaceExplorationRenderer
         }
         lastTime = time;
         float ratio = directionalAnalogStick.getRatio();
-
         player.update(
             directionalAnalogStick.getNormalizedX() * ratio,
             directionalAnalogStick.getNormalizedY() * ratio);
+        universe.updateBullets();
+        universe.updateEnemies();
+        universe.updatePlanets();
     }
 
 
@@ -278,5 +281,23 @@ public class SpaceExplorationRenderer
     public void post(Runnable r)
     {
         handler.post(r);
+    }
+
+    @Override
+    public void onSurfaceCreated(GL10 gl, EGLConfig config)
+    {
+        super.onSurfaceCreated(gl, config);
+        if (universe != null) {
+            universe.startUpdater();
+        }
+    }
+
+    @Override
+    public void onSurfaceDestroyed()
+    {
+        super.onSurfaceDestroyed();
+        if (universe != null) {
+            universe.stopUpdater();
+        }
     }
 }

@@ -2,13 +2,12 @@ package cs2114.spaceexploration.entity;
 
 import cs2114.spaceexploration.SpaceExplorationRenderer;
 import cs2114.spaceexploration.universe.Planet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import cs2114.spaceexploration.universe.Universe;
 import rajawali.BaseObject3D;
 import rajawali.bounds.IBoundingVolume;
 import rajawali.lights.DirectionalLight;
 import rajawali.math.Number3D;
+import rajawali.math.Quaternion;
 
 // -------------------------------------------------------------------------
 /**
@@ -21,6 +20,7 @@ import rajawali.math.Number3D;
  */
 public class Enemy
     extends BaseObject3D
+    implements Actor
 {
     /* Time before shots, in ticks (or frames) */
     private static final int         RELOAD_TIME           = 400;
@@ -32,7 +32,13 @@ public class Enemy
     private float                    health;
     private int                      tickSinceLastShot;
     private SpaceExplorationRenderer renderer;
-    private Set<Bullet>              bullets;
+
+    private float                    fovHoriz;
+
+    private float                    velocity;
+    private Number3D                 moveDirection;
+    private float                    enemyRoll;
+    private BaseObject3D             model;
 
     private static BaseObject3D      defaultModel;
 
@@ -57,35 +63,26 @@ public class Enemy
      */
     public Enemy(SpaceExplorationRenderer renderer)
     {
+        moveDirection = new Number3D(0, 0, -1);
         this.renderer = renderer;
-        bullets = new LinkedHashSet<Bullet>();
         health = 100;
-        BaseObject3D model = defaultModel.clone();
+        model = defaultModel.clone();
         DirectionalLight light = new DirectionalLight(1, 0.2f, -1);
         light.setColor(1.0f, 1.0f, 1.0f);
         light.setPower(20);
         model.setRotZ(0);
         model.setRotX(0);
         model.addLight(light);
+        fovHoriz = 45 * 3.14159f / 180.0f;
         addChild(model);
     }
 
 
-    private Bullet shoot(Player player)
+    private Bullet shoot()
     {
-        Number3D dir = player.getPosition().subtract(getPosition());
-        if (Math.random() > HIT_CHANCE)
-        {
-            final float miss = 20f;
-            dir.add(
-                (0.5f - (float)Math.random()) * miss,
-                (0.5f - (float)Math.random()) * miss,
-                (0.5f - (float)Math.random()) * miss);
-        }
-        Bullet b = new Bullet(dir, -5);
-        b.setPosition(getPosition());
-        renderer.addChild(b);
-        bullets.add(b);
+        Universe universe = renderer.getUniverse();
+        Bullet b = universe.shootBullet(this, moveDirection, -5);
+        b.setPosition(getPosition().clone());
         return b;
     }
 
@@ -93,34 +90,51 @@ public class Enemy
     /**
      * Updates the Enemy per frame.
      *
-     * @param player
-     *            the Player.
      * @return true if the Enemy is dead.
      */
-    public boolean update(Player player)
+    public boolean update()
     {
         tickSinceLastShot++;
-        if (tickSinceLastShot > RELOAD_TIME
-            && player.getPosition().distanceTo(getPosition()) <= MAX_SHOOTING_DISTANCE)
+        Player player = renderer.getPlayer();
+        Number3D playerPos = player.getPosition().clone();
+        Number3D myPos = getPosition().clone();
+        if (playerPos.distanceTo(myPos) <= MAX_SHOOTING_DISTANCE)
         {
-            tickSinceLastShot = 0;
-            bullets.add(shoot(player));
-        }
-        Iterator<Bullet> iter = bullets.iterator();
-        while (iter.hasNext())
-        {
-            Bullet b = iter.next();
-            if (b.update())
+            float angle = calculateHorizontalAngle(myPos, playerPos);
+            if (Math.abs(angle) < fovHoriz)
             {
-                renderer.removeChild(b);
-                iter.remove();
+                /* Player can be seen. */
+                Number3D dir = playerPos.subtract(myPos);
+                dir.normalize();
+                /* Turn to face the player and move towards him. */
+                float dot = dir.dot(moveDirection);
+                if (dot > .9f)
+                {
+                    /* Shoot */
+                    if (tickSinceLastShot > RELOAD_TIME) {
+                        shoot();
+                        tickSinceLastShot = 0;
+                    }
+                }
+                enemyRoll = (enemyRoll + dot * 25f) / 2.0f;
+                moveDirection.lerpSelf(moveDirection, dir, 0.2f);
+                setOrientation(Quaternion.getRotationTo(
+                    new Number3D(),
+                    moveDirection));
+                setPosition(getPosition().add(moveDirection.clone().multiply(velocity)));
             }
             else
             {
-                player.checkCollision(b);
+                enemyRoll = enemyRoll / 2.0f;
             }
         }
         return health <= 0;
+    }
+
+
+    private float calculateHorizontalAngle(Number3D v1, Number3D v2)
+    {
+        return (float)Math.tan((v2.x - v1.x) / (v2.z - v1.z));
     }
 
 

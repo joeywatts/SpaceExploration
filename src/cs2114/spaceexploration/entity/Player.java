@@ -10,9 +10,6 @@ import cs2114.spaceexploration.R;
 import cs2114.spaceexploration.SpaceExplorationRenderer;
 import cs2114.spaceexploration.universe.Planet;
 import cs2114.spaceexploration.universe.Universe;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.Set;
 import rajawali.BaseObject3D;
 import rajawali.bounds.IBoundingVolume;
 import rajawali.lights.DirectionalLight;
@@ -35,9 +32,9 @@ import rajawali.parser.ObjParser;
  */
 public class Player
     extends BaseObject3D
+    implements Actor
 {
     private SpaceExplorationRenderer renderer;
-    private Universe                 universe;
 
     private float                    velocity;
     /**
@@ -52,8 +49,6 @@ public class Player
 
     private float                    health;
     private float                    shipRoll;
-
-    private Set<Bullet>              bullets;
 
     private Quaternion               temp;
 
@@ -70,8 +65,6 @@ public class Player
     public Player(SpaceExplorationRenderer renderer)
     {
         this.renderer = renderer;
-        this.universe = renderer.getUniverse();
-        bullets = new LinkedHashSet<Bullet>();
         temp = new Quaternion();
         health = 100;
     }
@@ -200,29 +193,18 @@ public class Player
         velocity =
             Math.min(MAX_VELOCITY, Math.max(0, velocity + 0.1f * acceleration));
         Number3D dir = this.getOrientation().multiply(new Number3D(0, 0, -1));
-        setPosition(getPosition().add(dir.multiply(velocity)));
-        universe.updatePlanets(this);
+        setPosition(getPosition().clone().add(dir.multiply(velocity)));
 
         if (shoot)
         {
             shoot = false;
-            Bullet b = new Bullet(dir, MAX_VELOCITY);
-            b.setPosition(getPosition());
-            renderer.addChild(b);
-            bullets.add(b);
+            renderer
+                .getUniverse()
+                .shootBullet(
+                    this,
+                    this.getOrientation().multiply(new Number3D(0, 0, -1)),
+                    MAX_VELOCITY).setPosition(getPosition().clone());
         }
-
-        Iterator<Bullet> iter = bullets.iterator();
-        Bullet bullet;
-        while (iter.hasNext())
-        {
-            if ((bullet = iter.next()).update())
-            {
-                renderer.removeChild(bullet);
-                iter.remove();
-            }
-        }
-        universe.updateEnemies(this);
     }
 
 
@@ -243,17 +225,6 @@ public class Player
     public void addKill()
     {
         enemiesKilled++;
-    }
-
-
-    /**
-     * Gets a collection of all the Bullet projectiles fired by the Player.
-     *
-     * @return the collection of projectiles.
-     */
-    public Set<Bullet> getBullets()
-    {
-        return bullets;
     }
 
 
